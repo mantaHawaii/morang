@@ -75,28 +75,7 @@ constructor(
             }
         }
     }
-
-    suspend fun getIdTokenGoogleFlow(googleIdToken: String) = flow {
-        emit(DataState.Loading("토큰 정보 가져오는 중"))
-        try {
-            val firebaseCredential =
-                GoogleAuthProvider.getCredential(googleIdToken, null)
-            val user = auth.signInWithCredential(firebaseCredential)
-                .continueWith { task ->
-                    if (task.isSuccessful) {
-                        val result = task.result.user
-                        return@continueWith result
-                    } else {
-                        val exception = task.exception
-                        throw exception ?: Exception("Unknown error")
-                    }
-                }.await()
-            emit(DataState.Success(Pair(getIdToken(user), LoginCode.NOTHING)))
-        } catch (e: Exception) {
-            emit(DataState.Error(e))
-        }
-    }.flowOn(Dispatchers.Default)
-
+    
     suspend fun getIdTokenGoogle(googleIdToken: String): Pair<String, LoginCode> {
         val firebaseCredential = GoogleAuthProvider.getCredential(googleIdToken, null)
         val getUserTask = auth.signInWithCredential(firebaseCredential).await()
