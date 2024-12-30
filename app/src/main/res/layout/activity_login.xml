@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".ui.login.LoginActivity"
+        android:background="@color/white">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/iv_logo_center"
+            android:layout_width="210dp"
+            android:layout_height="0dp"
+            app:srcCompat="@drawable/logo"
+            android:clickable="true"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/button_sign_in_google"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintDimensionRatio="1:1"/>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/button_sign_in_google"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:text="@string/sign_in_google"
+            android:textColor="@color/black"
+            android:textAllCaps="false"
+            android:layout_marginStart="@dimen/margin_side_login_button"
+            android:layout_marginEnd="@dimen/margin_side_login_button"
+            android:layout_marginBottom="5dp"
+            android:background="@mipmap/btn_google_signin_light_normal"
+            app:layout_constraintBottom_toTopOf="@+id/button_sign_in_kakao"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/button_sign_in_kakao"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:text="@string/sign_in_kakao"
+            android:textColor="@color/black"
+            android:textAllCaps="false"
+            android:background="@mipmap/btn_kakao_signin"
+            android:layout_marginStart="@dimen/margin_side_login_button"
+            android:layout_marginEnd="@dimen/margin_side_login_button"
+            android:layout_marginBottom="5dp"
+            app:layout_constraintBottom_toTopOf="@+id/button_guest"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/button_guest"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:text="@string/login_guest"
+            android:textColor="@color/black"
+            android:textAllCaps="false"
+            android:drawableStart="@drawable/ic_baseline_account_circle_24"
+            android:drawableTint="@color/light_grey"
+            android:drawablePadding="9.5dp"
+            android:backgroundTint="@color/background_grey"
+            android:layout_marginStart="@dimen/margin_side_login_button"
+            android:layout_marginEnd="@dimen/margin_side_login_button"
+            android:layout_marginBottom="24dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+
+        <!--
+        <Button
+            android:id="@+id/button_sign_in_naver"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:text="@string/sign_in_naver"
+            android:layout_marginStart="@dimen/margin_side_login_button"
+            android:layout_marginEnd="@dimen/margin_side_login_button"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+            -->
+
+        <ProgressBar
+            android:id="@+id/pb_loading"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:indeterminate="true"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:visibility="gone"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/fragment_container_view"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:elevation="100dp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

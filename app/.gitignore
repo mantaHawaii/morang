@@ -1,0 +1,5 @@
+/build
+*.jks
+/release
+google-services.json
+/src/main/res/values/strings.xml

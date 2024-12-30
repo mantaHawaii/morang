@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <color name="main">#FF08AEEA</color>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="light_grey">#FFA0A0A0</color>
+    <color name="background_grey">#FFF3F3F3</color>
+    <color name="text_black">#FF101010</color>
+    <color name="text_dark_grey">#FF505050</color>
+    <color name="text_grey">#FF989898</color>
+    <color name="text_light_grey">#FFDDDDDD</color>
+    <color name="skyblue_200">#FF7AE5F5</color>
+    <color name="skyblue_500">#FF35D7ED</color>
+    <color name="pink">#FFF19EC8</color>
+    <color name="spun_sugar">#FFB4DCEA</color>
+    <color name="gossamer_pink">#FFFAC8C3</color>
+    <color name="innuendo">#FFC43362</color>
+    <color name="gnt_red">#FFC43362</color>
+    <color name="skydiver">#FF005898</color>
+    <color name="mtrl_textinput_default_box_stroke_color" tools:override="true">@color/skyblue_500</color>
+</resources>

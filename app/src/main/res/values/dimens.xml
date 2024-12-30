@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="margin_side_login_button">28dp</dimen>
+    <dimen name="article_image_size">75dp</dimen>
+    <dimen name="floating_button_margin">8dp</dimen>
+    <dimen name="comment_text_size">15sp</dimen>
+    <dimen name="comment_article_max_size">15sp</dimen>
+    <dimen name="comment_datetime_size">12sp</dimen>
+    <dimen name="comment_nickname_size">14sp</dimen>
+    <dimen name="padding_behavior_item">20dp</dimen>
+    <dimen name="margin_behavior_item">15dp</dimen>
+</resources>

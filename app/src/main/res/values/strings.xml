@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">모랭</string>
+    <string name="web_client_id">860205151038-lcjjs31auafrd6rctesqsfg6gtrq7ff0.apps.googleusercontent.com</string>
+    <string name="sign_in_google">Google 로그인</string>
+    <string name="sign_in_kakao">카카오 로그인</string>
+    <string name="sign_in_naver">네이버 로그인</string>
+    <string name="login_guest">게스트로 접속하기</string>
+    <string name="native_app_key">fc0fb209e251e3c5490cea1b3723af80</string>
+    <string name="ad_unit_id">ca-app-pub-7433323850982382/4918430661</string>
+    <string name="kakao_native_app_key">kakaofc0fb209e251e3c5490cea1b3723af80</string>
+    <string name="message_logout_fail">로그아웃에 실패하였습니다</string>
+    <string name="preference_file_key">com.gusto.pikgoogoo.LOGIN_INFO</string>
+    <string name="preference_searchwords_key">com.gusto.pikgoogoo.SEARHC_WORDS</string>
+    <string name="preference_user_key">USER_INFO_ID</string>
+    <string name="preference_local_db_version_key">enterthedatabase</string>
+    <string name="application_id">ca-app-pub-3940256099942544~3347511713</string>
+    <string name="addmob_id">ca-app-pub-7433323850982382~9369249287</string>
+    <string name="banner_ad_id">ca-app-pub-7433323850982382/3568513295</string>
+    <string name="nickname_guidelines">닉네임은 13자를 넘어서는 안되며 욕설이나 비방적인 표현은 삼가주시기 바랍니다</string>
+    <string name="article_guidelines">주제와 관련없거나 욕설 및 비방적인 표현이 포함된 항목은 삭제될 수 있습니다</string>
+    <string name="subject_guidelines">정치, 종교, 성과 같은 논쟁적이고 민감한 주제나 비방적이고 모욕적인 표현이 있는 주제는 삼가주시기 바라며 해당하는 경우에는 삭제될 수 있습니다</string>
+</resources>

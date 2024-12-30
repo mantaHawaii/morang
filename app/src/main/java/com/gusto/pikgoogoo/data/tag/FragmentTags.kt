@@ -1,0 +1,26 @@
+package com.gusto.pikgoogoo.data.tag
+
+object FragmentTags {
+    const val ADD_ARTICLE_TAG = "ADD_ARTICLE"
+    const val ARTICLE_CHART_TAG = "ARTICLE_CHART"
+    const val ARTICLE_BEHAVIOR_TAG = "ARTICLE_BEHAVIOR"
+    const val ARTICLE_LIST_TAG = "ARTICLE_LIST"
+    const val CATEGORY_LIST_TAG = "CATEGORY_LIST"
+    const val EDIT_COMMENT_TAG = "EDIT_COMMENT"
+    const val MY_COMMENT_LIST_TAG = "MY_COMMENT_LIST"
+    const val COMMENT_BEHAVIOR_TAG = "COMMENT_BEHAVIOR"
+    const val COMMENT_LIST_TAG = "COMMENT_LIST"
+    const val GP_DIALOG_TAG = "GP_DIALOG"
+    const val GRADE_LIST_TAG = "GRADE_LIST"
+    const val REGISTER_TAG = "REGISTER"
+    const val MY_INFO_TAG = "MY_INFO"
+    const val EDIT_PROFILE_TAG = "EDIT_PROFILE"
+    const val REPORT_TAG = "REPORT"
+    const val ADD_SUBJECT_TAG = "ADD_SUBJECT"
+    const val BOOKMARKED_SUBJECT_LIST_TAG = "BOOKMARKED_SUBJECT"
+    const val SUBJECT_LIST_TAG = "SUBJECT_LIST"
+    const val MY_SUBJECT_LIST_TAG = "MY_SUBJECT_LIST"
+    const val SEARCH_SUBJECT_TAG = "SEARCH_SUBJECT"
+    const val WITHDRAWAL_TAG = "WITHDRAWAL"
+    const val DATE_PICKER_TAG = "DATE_PICKER"
+}

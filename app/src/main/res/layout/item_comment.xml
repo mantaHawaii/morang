@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingTop="5dp"
+    android:paddingBottom="5dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?android:selectableItemBackground"
+    android:background="@color/background_grey">
+
+    <ImageButton
+        android:id="@+id/ib_grade"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:layout_marginTop="5dp"
+        android:background="@android:color/transparent"
+        app:layout_constraintStart_toStartOf="@+id/tv_nickname"
+        app:layout_constraintTop_toBottomOf="@+id/tv_nickname"
+        app:srcCompat="@drawable/ic_baseline_account_circle_24" />
+
+    <TextView
+        android:id="@+id/tv_nickname"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="8dp"
+        android:text="사용자"
+        android:textSize="@dimen/comment_nickname_size"
+        android:textColor="@color/text_dark_grey"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cv_comment"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="5dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="0dp"
+        app:layout_constraintEnd_toStartOf="@id/cv_like"
+        app:layout_constraintStart_toEndOf="@+id/ib_grade"
+        app:layout_constraintTop_toBottomOf="@+id/tv_nickname">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingTop="8dp"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="5dp"
+            android:orientation="vertical">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/b_article"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:stateListAnimator="@null"
+                android:foregroundTint="@color/white"
+                android:backgroundTint="@color/white"
+                android:elevation="0dp"
+                android:text="\@항목명"
+                android:autoSizeMaxTextSize="@dimen/comment_article_max_size"
+                android:autoSizeMinTextSize="5sp"
+                android:autoSizeStepGranularity="1px"
+                android:autoSizeTextType="uniform"
+                android:lines="1"
+                android:gravity="start|top"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:textColor="@color/skydiver"
+                android:padding="0dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:layout_marginBottom="5dp"/>
+
+            <TextView
+                android:id="@+id/tv_comment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="여기에는 코멘트의 내용이 들어갑니다"
+                android:textSize="@dimen/comment_text_size"
+                android:textColor="@color/text_dark_grey"
+                android:letterSpacing="0.03"
+                android:lineSpacingMultiplier="1.2"
+                android:gravity="start|top"
+                android:autoLink="web"
+                android:linksClickable="true"/>
+
+            <TextView
+                android:id="@+id/tv_datetime"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:gravity="end"
+                android:text="2022-09-07 오후 5:55"
+                android:textSize="@dimen/comment_datetime_size"
+                android:textColor="@color/light_grey"
+                android:lines="1"
+                android:autoSizeMaxTextSize="11dp"
+                android:autoSizeMinTextSize="5dp"
+                android:autoSizeStepGranularity="1px"
+                android:autoSizeTextType="uniform"
+                android:layout_marginTop="5dp"/>
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cv_like"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:orientation="horizontal"
+        app:cardBackgroundColor="#AAFFFFFF"
+        app:cardCornerRadius="100dp"
+        app:cardElevation="0dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?android:selectableItemBackground"
+        android:layout_marginEnd="32dp"
+        app:layout_constraintBottom_toBottomOf="@id/cv_comment"
+        app:layout_constraintStart_toEndOf="@id/cv_comment"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="7dp">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_baseline_favorite_24"
+                android:tint="@color/gossamer_pink" />
+
+            <TextView
+                android:id="@+id/tv_like_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical|start"
+                android:layout_marginStart="3dp"
+                android:layout_marginEnd="2dp"
+                android:text="120"
+                android:textColor="@color/text_dark_grey"
+                android:textSize="13dp"/>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
