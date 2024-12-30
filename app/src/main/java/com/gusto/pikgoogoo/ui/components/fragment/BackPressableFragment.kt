@@ -40,7 +40,6 @@ open class BackPressableFragment : Fragment() {
                         addUpdateListener { updatedAnimation ->
                             rootView.translationY = updatedAnimation.animatedValue as Float
                             if (rootView.translationY == f) {
-                                Log.d("MR_BPF", parentFragmentManager.backStackEntryCount.toString())
                                 parentFragmentManager.popBackStackImmediate()
                             }
                         }
@@ -54,7 +53,6 @@ open class BackPressableFragment : Fragment() {
                         addUpdateListener { updatedAnimation ->
                             rootView.translationX = updatedAnimation.animatedValue as Float
                             if (rootView.translationX == f) {
-                                Log.d("MR_BPF", parentFragmentManager.backStackEntryCount.toString())
                                 parentFragmentManager.popBackStackImmediate()
                             }
                         }
@@ -67,7 +65,6 @@ open class BackPressableFragment : Fragment() {
                         addUpdateListener { updatedAnimation ->
                             rootView.alpha = updatedAnimation.animatedValue as Float
                             if (rootView.alpha == 0f) {
-                                Log.d("MR_BPF", parentFragmentManager.backStackEntryCount.toString())
                                 parentFragmentManager.popBackStackImmediate()
                             }
                         }

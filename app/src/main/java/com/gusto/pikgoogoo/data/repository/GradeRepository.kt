@@ -20,20 +20,6 @@ constructor(
     private val gradeMapper: GradeMapper
 ){
 
-    suspend fun getServerDBVersionFlow(): Flow<DataState<Int>> = flow {
-        emit(DataState.Loading())
-        try {
-            val res = webService.getServerDBVersion()
-            if (res!!.status.code.equals("111")) {
-                emit(DataState.Success(res.dbVersion))
-            } else {
-                emit(DataState.Failure(res.status.message))
-            }
-        } catch (e: Exception) {
-            emit(DataState.Error(e))
-        }
-    }.flowOn(Dispatchers.IO)
-
     suspend fun getServerDBVersion(): Int {
         val res = withContext(Dispatchers.IO) {
             webService.getServerDBVersion()
@@ -44,24 +30,6 @@ constructor(
             throw Exception(res.status.message)
         }
     }
-
-    suspend fun insertGradeFromServerFlow(): Flow<DataState<String>> = flow {
-        emit(DataState.Loading())
-        try {
-            val res = webService.getGrade()
-            if (res.status.code.equals("111")) {
-                val gradeList = gradeMapper.mapFromEntityList(res.grade)
-                for (grade in gradeList) {
-                    gradeDao.insertGradeAll(grade)
-                }
-                emit(DataState.Success("등급 정보 업데이트가 완료되었습니다"))
-            } else {
-                emit(DataState.Failure(res.status.message))
-            }
-        } catch (e: Exception) {
-            emit(DataState.Error(e))
-        }
-    }.flowOn(Dispatchers.IO)
 
     suspend fun insertGradeFromServer(): String {
         val res = withContext(Dispatchers.IO) {
@@ -92,20 +60,6 @@ constructor(
             gradeDao.getGradeAll()
         }
     }
-
-    suspend fun setGradeIconFlow(token: String, gradeIcon: Int): Flow<DataState<Int>> = flow {
-        emit(DataState.Loading())
-        try {
-            val res = webService.editUserGradeIcon(token, gradeIcon)
-            if (res.status.code.equals("111")) {
-                emit(DataState.Success(res.id))
-            } else {
-                emit(DataState.Failure(res.status.message))
-            }
-        } catch (e: Exception) {
-            emit(DataState.Error(e))
-        }
-    }.flowOn(Dispatchers.IO)
 
     suspend fun setGradeIcon(token: String, gradeIcon: Int): Int {
         val res = withContext(Dispatchers.IO) {

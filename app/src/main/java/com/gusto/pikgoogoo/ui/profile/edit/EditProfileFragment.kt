@@ -29,7 +29,7 @@ constructor(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
 
         binding = FragmentEditProfileBinding.inflate(inflater, container, false)
         val v = binding.root
@@ -65,7 +65,7 @@ constructor(
 
     private fun editUser() {
         val nickname = binding.etNickname.text.toString().trim()
-        if (nickname.length < 1 || nickname.length > 13) {
+        if (nickname.isEmpty() || nickname.length > 13) {
             showMessage("닉네임은 1자 이상, 13자 이하로 하여 주십시오")
         } else {
             viewModel.editProfileNickname(nickname)

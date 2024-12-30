@@ -96,10 +96,14 @@ constructor(
 
     fun getTokenIdGoogle(token: String) {
         viewModelScope.launch {
-            authModel.getIdTokenGoogleFlow(token)
-                .onEach { dataState ->
-                    _idTokenState.value = dataState
-                }.launchIn(viewModelScope)
+            _idTokenState.value = DataState.Loading("ID토큰 가져오는 중")
+            val idToken = try {
+                authModel.getIdTokenGoogle(token)
+            } catch (e: Exception) {
+                _idTokenState.value = DataState.Error(e)
+                return@launch
+            }
+            _idTokenState.value = DataState.Success(idToken)
         }
     }
 

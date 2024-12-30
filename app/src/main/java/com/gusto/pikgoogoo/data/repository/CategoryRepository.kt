@@ -18,25 +18,6 @@ constructor(
     private val categoryMapper: CategoryMapper
 ){
 
-    suspend fun getCategoriesFlow() : Flow<DataState<List<Category>>> = flow {
-        emit(DataState.Loading())
-        try {
-
-            val res = webService.getCategories()
-            val code = res.status.code
-
-            if (code.equals("111")) {
-                val categories = categoryMapper.mapFromEntityList(res.categories)
-                emit(DataState.Success(categories))
-            } else {
-                emit(DataState.Failure(res.status.message))
-            }
-
-        } catch (e: Exception) {
-            emit(DataState.Error(e))
-        }
-    }.flowOn(Dispatchers.IO)
-
     suspend fun getCategories() : List<Category> {
         val res = withContext(Dispatchers.IO) {
             webService.getCategories()
