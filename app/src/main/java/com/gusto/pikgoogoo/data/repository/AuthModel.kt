@@ -76,27 +76,6 @@ constructor(
         }
     }
 
-    suspend fun getIdTokenGoogleFlow(googleIdToken: String) = flow {
-        emit(DataState.Loading("토큰 정보 가져오는 중"))
-        try {
-            val firebaseCredential =
-                GoogleAuthProvider.getCredential(googleIdToken, null)
-            val user = auth.signInWithCredential(firebaseCredential)
-                .continueWith { task ->
-                    if (task.isSuccessful) {
-                        val result = task.result.user
-                        return@continueWith result
-                    } else {
-                        val exception = task.exception
-                        throw exception ?: Exception("Unknown error")
-                    }
-                }.await()
-            emit(DataState.Success(Pair(getIdToken(user), LoginCode.NOTHING)))
-        } catch (e: Exception) {
-            emit(DataState.Error(e))
-        }
-    }.flowOn(Dispatchers.Default)
-
     suspend fun getIdTokenGoogle(googleIdToken: String): Pair<String, LoginCode> {
         val firebaseCredential = GoogleAuthProvider.getCredential(googleIdToken, null)
         val getUserTask = auth.signInWithCredential(firebaseCredential).await()
@@ -138,17 +117,17 @@ constructor(
             "refreshToken" to refreshToken
         )
 
-        val customToken = withContext(Dispatchers.Default) {
+        val customTokenData = withContext(Dispatchers.Default) {
                 functions
                     .getHttpsCallable("getCustomToken")
                     .call(data)
                     .await()
-        }?.data.toString()
+        }?.data?:throw Exception("토큰 정보 불러오기 실패")
 
         val user = withContext(Dispatchers.Default) {
-                auth.signInWithCustomToken(customToken)
+                auth.signInWithCustomToken(customTokenData.toString())
                     .await()
-        }?.user
+        }?.user?:throw Exception("유저 정보 불러오기 실패")
 
         return Pair(getIdToken(user), LoginCode.NOTHING)
 
@@ -161,50 +140,36 @@ constructor(
             "uid" to uid
         )
 
-        val customToken = try {
-            val result = withContext(Dispatchers.Default) {
-                functions
-                    .getHttpsCallable("getCustomTokenGP")
-                    .call(data)
-                    .await()
-            }
-            result?.data.toString()
-        } catch (e: Exception) {
-            throw e
-        }
+        val customTokenData = withContext(Dispatchers.Default) {
+            functions
+                .getHttpsCallable("getCustomTokenGP")
+                .call(data)
+                .await()
+        }?.data?:throw Exception("토큰 정보 불러오기 실패")
 
-        val user = try {
-            val result = withContext(Dispatchers.Default) {
-                auth.signInWithCustomToken(customToken)
-                    .await()
-            }
-            result?.user
-        } catch (e: Exception) {
-            throw e
-        }
+        val user = withContext(Dispatchers.Default) {
+            auth.signInWithCustomToken(customTokenData.toString())
+                .await()
+        }?.user?:throw Exception("유저 정보 불러오기 실패")
 
         return Pair(getIdToken(user), LoginCode.NOTHING)
 
     }
 
     suspend fun getIdTokenAuthUser(registerFlag: Boolean): Pair<String, LoginCode> {
-        try {
-            val token = getIdToken(auth.currentUser)
-            if (registerFlag) {
-                return Pair(token, LoginCode.REIGSTER)
-            } else {
-                return Pair(token, LoginCode.NOTHING)
-            }
-        } catch (e: Exception) {
-            throw e
+        val token = getIdToken(auth.currentUser)
+        if (registerFlag) {
+            return Pair(token, LoginCode.REIGSTER)
+        } else {
+            return Pair(token, LoginCode.NOTHING)
         }
     }
 
     suspend fun getIdToken(user: FirebaseUser?=auth.currentUser): String {
         if (user != null) {
             val resultGetIdToken = user.getIdToken(true).await()
-            resultGetIdToken.token ?: throw Exception("ID 토큰 정보 가져오기 실패")
-            return resultGetIdToken.token!!
+            val idToken = resultGetIdToken.token ?: throw Exception("ID 토큰 정보 가져오기 실패")
+            return idToken
         } else {
             throw Exception("유저 정보 가져오기 실패")
         }
