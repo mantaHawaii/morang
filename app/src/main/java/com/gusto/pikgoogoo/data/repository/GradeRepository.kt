@@ -37,8 +37,10 @@ constructor(
         }
         if (res.status.code == "111") {
             val gradeList = gradeMapper.mapFromEntityList(res.grade)
-            for (grade in gradeList) {
-                gradeDao.insertGradeAll(grade)
+            withContext(Dispatchers.Default) {
+                for (grade in gradeList) {
+                    gradeDao.insertGradeAll(grade)
+                }
             }
             return "등급 정보 업데이트가 완료되었습니다"
         } else {

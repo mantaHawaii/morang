@@ -2,6 +2,7 @@ package com.gusto.pikgoogoo.ui.components.compose
 
 import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -20,8 +21,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -29,11 +32,13 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -55,47 +60,76 @@ fun ItemList() {
 }
 
 
-@Composable
-fun ArticleItemRow(item: Article) {
-}
-
 @Preview
 @Composable
-fun CustomItem() {
+fun ArticleItemRow() {
     val buttonHeight = 32.dp
     // 전체 레이아웃을 위한 Column 사용
 
-    Row {
+    Row(
+        Modifier.background(colorResource(id = R.color.white))
+            .padding(start = 24.dp, end = 32.dp, top = 16.dp, bottom = 16.dp)
+    ) {
         Text(
             text = "1",
             modifier = Modifier
                 .align(Alignment.CenterVertically)
-                .padding(12.dp)
-                .defaultMinSize(minWidth = 15.dp)
+                .defaultMinSize(minWidth = 32.dp)
         )
         Column(
             modifier = Modifier
-                .fillMaxWidth() // 가로 전체를 채우도록 설정
-                .padding(12.dp), // 안쪽 여백 설정
+                .fillMaxWidth()
         ) {
             // Row를 사용하여 이미지와 텍스트를 나란히 배치
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 12.dp), // 아래쪽 여백 설정
+                    .padding(top = 24.dp, bottom = 25.dp), // 아래쪽 여백 설정
                 verticalAlignment = Alignment.CenterVertically // 세로로 가운데 정렬
             ) {
 
                 Image(
-                    painter = painterResource(id = R.drawable.ic_launcher_foreground), // 이미지 리소스 설정
+                    painter = painterResource(id = R.drawable.grade2), // 이미지 리소스 설정
                     contentDescription = null,
-                    modifier = Modifier// 이미지 크기 설정
-                        .padding(end = 16.dp) // 이미지와 텍스트 사이에 간격 설정
+                    modifier = Modifier
+                        .size(75.dp)
+                        .clip(RoundedCornerShape(2.dp))
                 )
-                Text(
-                    text = "여기에 텍스트가 들어갑니다.",
-                    modifier = Modifier.fillMaxWidth()
-                )
+                Column(
+                    modifier = Modifier.padding(start = 24.dp).height(75.dp),
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "여기에 텍스트가 들어갑니다.",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        LinearProgressIndicator(
+                            progress = {0.75f},
+                            modifier = Modifier
+                                .height(15.dp)
+                                .weight(1f)
+                                .align(Alignment.CenterVertically),
+                            color = colorResource(id = R.color.innuendo),
+                            trackColor = colorResource(id = R.color.gossamer_pink))
+                        Text(
+                            text = "75",
+                            color = colorResource(id = R.color.innuendo),
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(start = 5.dp).align(Alignment.Bottom),
+                            fontSize = 15.sp)
+                        Text(
+                            text = "%",
+                            color = colorResource(id = R.color.innuendo),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 11.sp,
+                            modifier = Modifier.align(Alignment.Bottom))
+                    }
+                }
             }
 
             // 두 개의 버튼을 배치
