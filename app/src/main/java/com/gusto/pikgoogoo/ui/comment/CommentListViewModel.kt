@@ -30,9 +30,6 @@ constructor(
     private val _commentsData: MutableLiveData<DataState<List<Comment>>> = MutableLiveData()
     private val _commentOnRes: MutableLiveData<DataState<String>> = MutableLiveData()
     private val _gradeData: MutableLiveData<DataState<List<Grade>>> = MutableLiveData()
-    private val _editCommentRes: MutableLiveData<DataState<Pair<Int, String>>> = MutableLiveData()
-    private val _deleteCommentRes: MutableLiveData<DataState<Int>> = MutableLiveData()
-    private val _likeCommentRes: MutableLiveData<DataState<Int>> = MutableLiveData()
 
     val commentData: LiveData<DataState<List<Comment>>>
         get() = _commentsData
@@ -40,12 +37,6 @@ constructor(
         get() = _commentOnRes
     val gradeData: LiveData<DataState<List<Grade>>>
         get() = _gradeData
-    val editCommentRes: LiveData<DataState<Pair<Int, String>>>
-        get() = _editCommentRes
-    val deleteCommentRes: LiveData<DataState<Int>>
-        get() = _deleteCommentRes
-    val likeCommentRes: LiveData<DataState<Int>>
-        get() = _likeCommentRes
 
     val comments = mutableListOf<Comment>()
     val params = CommentListParam(0, 0, 0, 0)
