@@ -34,6 +34,7 @@ constructor(
 
     fun getVoteHistory(articleId: Int, startDate: String, endDate: String) {
         viewModelScope.launch {
+            _voteHistoryData.value = DataState.Loading("서버에 투표 히스토리 요청 중")
             val result = try {
                 articleRepository.getVoteHistory(articleId, startDate, endDate)
             } catch (e: Exception) {
@@ -46,6 +47,7 @@ constructor(
 
     fun getArticleCreatedDate(articleId: Int) {
         viewModelScope.launch {
+            _createdDate.value = DataState.Loading("서버에 항목 생성 날짜 요청 중")
             val result = try {
                 articleRepository.getArticleCreatedDate(articleId)
             } catch (e: Exception) {

@@ -101,7 +101,7 @@ constructor(
     fun voteArticle(articleId: Int, pos: Int) {
         viewModelScope.launch {
             val idToken = try {
-                authModel.getIdToken()
+                authModel.getIdTokenByUser()
             } catch (e: Exception) {
                 _voteRes.value = DataState.Error(e)
                 return@launch
@@ -131,7 +131,7 @@ constructor(
     fun bookmarkSubject() {
         viewModelScope.launch {
             val idToken = try {
-                authModel.getIdToken()
+                authModel.getIdTokenByUser()
             } catch (e: Exception) {
                 _bookmarkRes.value = DataState.Error(e)
                 return@launch

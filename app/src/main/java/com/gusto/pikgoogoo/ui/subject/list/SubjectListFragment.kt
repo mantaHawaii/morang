@@ -189,11 +189,6 @@ class SubjectListFragment : LoadingIndicatorFragment() {
                     adapter.notifyDataSetChanged()
                     binding.srlSubjects.isRefreshing = false
                 }
-                is DataState.Failure -> {
-                    loadEnd()
-                    Toast.makeText(requireActivity(), dataState.string, Toast.LENGTH_LONG).show()
-                    binding.srlSubjects.isRefreshing = false
-                }
                 is DataState.Error -> {
                     loadEnd()
                     binding.srlSubjects.isRefreshing = false
@@ -209,9 +204,6 @@ class SubjectListFragment : LoadingIndicatorFragment() {
                     loadEnd()
                     adapter.setGradeList(dataState.result)
                     viewModel.fetchSubjects()
-                }
-                is DataState.Failure -> {
-                    loadEnd()
                 }
                 is DataState.Error -> {
                     loadEnd()

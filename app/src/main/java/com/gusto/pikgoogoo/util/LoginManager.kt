@@ -18,12 +18,8 @@ constructor(
 ) {
 
     private val key = "isLoggedIn"
-    private lateinit var sharedPref: SharedPreferences
-
-
-    init {
-        sharedPref = context.getSharedPreferences(context.getString(R.string.preference_file_key), Context.MODE_PRIVATE)
-    }
+    private var sharedPref: SharedPreferences
+            = context.getSharedPreferences(context.getString(R.string.preference_file_key), Context.MODE_PRIVATE)
 
     fun isLoggedIn(): Boolean {
 
@@ -40,9 +36,12 @@ constructor(
         return sharedPref.getBoolean(key, false) && isLoggedInFirebase
     }
 
-    fun logIn() {
+    fun logIn(id: Int) {
         val editor = sharedPref.edit()
-        editor.putBoolean(key, true).apply()
+        editor
+            .putBoolean(key, true)
+            .putInt(context.getString(R.string.preference_user_key), id)
+            .apply()
     }
 
     fun logOut() {

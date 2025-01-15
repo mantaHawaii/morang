@@ -34,6 +34,7 @@ constructor(
 
     fun getReportReasons(type: Int) {
         viewModelScope.launch {
+            _reportData.value = DataState.Loading("신고 사유 목록 가져오는 중")
             val result = try {
                 reportRepository.getReportReasons(type)
             } catch (e: Exception) {
@@ -46,13 +47,16 @@ constructor(
 
     fun reportArticle(context: Context, articleId: Int, reportId: Int) {
         viewModelScope.launch {
-            _messageData.value = DataState.Loading()
+
+            _messageData.value = DataState.Loading("유저 아이디 가져오는 중")
             val uid = try {
                 userRepository.getUidFromShareRef(context)
             } catch (e: Exception) {
                 _messageData.value = DataState.Error(e)
                 return@launch
             }
+
+            _messageData.value = DataState.Loading("서버에 항목 신고 요청 중")
             val result = try {
                 reportRepository.reportArticle(articleId, reportId, uid)
             } catch (e: Exception) {
@@ -65,13 +69,16 @@ constructor(
 
     fun reportComment(context: Context, commentId: Int, reportId: Int) {
         viewModelScope.launch {
-            _messageData.value = DataState.Loading()
+
+            _messageData.value = DataState.Loading("유저 아이디 가져오는 중")
             val uid = try {
                 userRepository.getUidFromShareRef(context)
             } catch (e: Exception) {
                 _messageData.value = DataState.Error(e)
                 return@launch
             }
+
+            _messageData.value = DataState.Loading("서버에 코멘트 신고 요청 중")
             val result = try {
                 reportRepository.reportComment(commentId, reportId, uid)
             } catch (e: Exception) {

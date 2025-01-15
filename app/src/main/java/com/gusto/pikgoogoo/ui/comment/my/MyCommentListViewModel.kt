@@ -45,21 +45,27 @@ constructor(
 
     fun getMyComments(context: Context) {
         viewModelScope.launch {
+
             if (offset == 0) {
                 comments.clear()
             }
+
+            _commentData.value = DataState.Loading("유저 아이디 가져오는 중")
             val uid = try {
                 userRepository.getUidFromShareRef(context)
             } catch (e: Exception) {
                 _commentData.value = DataState.Error(e)
                 return@launch
             }
+
+            _commentData.value = DataState.Loading("서버에 유저 코멘트 데이터 요청 중")
             val result = try {
                 commentRepository.getUserComments(uid, order, offset)
             } catch (e: Exception) {
                 _commentData.value = DataState.Error(e)
                 return@launch
             }
+
             moreFlag = result.size > 0
             comments.addAll(result)
             _commentData.value = DataState.Success(comments)

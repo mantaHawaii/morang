@@ -38,6 +38,8 @@ constructor(
     private lateinit var mAdapter: CommentAdapter
     private lateinit var firebaseAnalytics: FirebaseAnalytics
 
+    private var moreFlag = true
+
     @Inject
     lateinit var loginManager: LoginManager
 
@@ -45,7 +47,7 @@ constructor(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
 
         firebaseAnalytics = Firebase.analytics
 
@@ -60,7 +62,7 @@ constructor(
             when(flag) {
                 1 -> {
                     if (loginManager.isLoggedIn()) {
-                        viewModel.likeComment(commentId)
+                        viewModel.submitCommentLike(commentId)
                     } else {
                         alertLogin()
                     }
@@ -69,7 +71,7 @@ constructor(
                     viewModel.params.articleId = itemArticleId
                     viewModel.params.order = 0
                     viewModel.params.offset = 0
-                    viewModel.getComments()
+                    viewModel.fetchComments()
                 }
                 else -> {
 
@@ -84,9 +86,9 @@ constructor(
         binding.rvComments.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
-                if (dy > 0 && !recyclerView.canScrollVertically(1) && !isLoading && viewModel.moreFlag) {
+                if (dy > 0 && !recyclerView.canScrollVertically(1) && !isLoading && moreFlag) {
                     viewModel.params.offset += 1
-                    viewModel.getComments()
+                    viewModel.fetchComments()
                 }
             }
         })
@@ -97,14 +99,14 @@ constructor(
                 if (comment.trim().length < 1) {
                     showMessage("댓글 내용이 비어있습니다")
                 } else {
-                    viewModel.commentOnArticle(articleId, comment)
+                    viewModel.postCommentToArticle(articleId, comment)
                 }
             } else {
                 alertLogin()
             }
         }
 
-        viewModel.getGrade()
+        viewModel.fetchGradeList()
 
         binding.cvCommentOrder.setOnClickListener {
             if (viewModel.params.order == 0) {
@@ -114,11 +116,11 @@ constructor(
                 }
                 viewModel.params.offset = 0
                 viewModel.params.order = 1
-                viewModel.getComments()
+                viewModel.fetchComments()
             } else {
                 viewModel.params.offset = 0
                 viewModel.params.order = 0
-                viewModel.getComments()
+                viewModel.fetchComments()
             }
         }
 
@@ -162,16 +164,13 @@ constructor(
                 }
                 is DataState.Success -> {
                     loadEnd()
+                    moreFlag = dataState.result.size > 0
                     mAdapter.setList(dataState.result)
                     if (viewModel.params.order == 1) {
                         binding.tvCommentOrder.text = "최신댓글"
                     } else {
                         binding.tvCommentOrder.text = "베스트댓글"
                     }
-                }
-                is DataState.Failure -> {
-                    loadEnd()
-                    showMessage(dataState.string)
                 }
                 is DataState.Error -> {
                     loadEnd()
@@ -188,11 +187,7 @@ constructor(
                 is DataState.Success -> {
                     loadEnd()
                     emptyEditText()
-                    viewModel.getComments()
-                }
-                is DataState.Failure -> {
-                    loadEnd()
-                    showMessage(dataState.string)
+                    viewModel.fetchComments()
                 }
                 is DataState.Error -> {
                     loadEnd()
@@ -208,11 +203,7 @@ constructor(
                 is DataState.Success -> {
                     loadEnd()
                     mAdapter.setGradeList(dataState.result)
-                    viewModel.getComments()
-                }
-                is DataState.Failure -> {
-                    loadEnd()
-                    showMessage(dataState.string)
+                    viewModel.fetchComments()
                 }
                 is DataState.Error -> {
                     loadEnd()

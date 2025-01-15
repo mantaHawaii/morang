@@ -26,35 +26,70 @@ constructor(
 ): ViewModel() {
 
     private val _userData: MutableLiveData<DataState<User>> = MutableLiveData()
-    private val _registerState: MutableLiveData<DataState<String>> = MutableLiveData()
+    private val _registerState: MutableLiveData<DataState<Int>> = MutableLiveData()
+
     private val _googleTokenState: MutableLiveData<DataState<String>> = MutableLiveData()
     private val _kakaoTokenState: MutableLiveData<DataState<OAuthToken>> = MutableLiveData()
     private val _idTokenState: MutableLiveData<DataState<Pair<String, LoginCode>>> = MutableLiveData()
 
     val userData: LiveData<DataState<User>>
         get() = _userData
-    val registerState: LiveData<DataState<String>>
+
+    val registerState: LiveData<DataState<Int>>
         get() = _registerState
+
+    @Deprecated("이 변수는 더 이상 사용되지 않습니다")
     val googleTokenState: LiveData<DataState<String>>
         get() = _googleTokenState
+
+    @Deprecated("이 변수는 더 이상 사용되지 않습니다")
     val kakaoTokenState: LiveData<DataState<OAuthToken>>
         get() = _kakaoTokenState
+
+    @Deprecated("이 변수는 더 이상 사용되지 않습니다")
     val idTokenState: LiveData<DataState<Pair<String, LoginCode>>>
         get() = _idTokenState
 
-    fun requestRegister(token: String, nickname: String) {
+
+    fun registerUser(nickname: String) {
         viewModelScope.launch {
-            _registerState.value = DataState.Loading("유저 등록 중")
-            val result = try {
-                userRepository.registerUser(token, nickname)
-            } catch (e: Exception) {
-                _registerState.value = DataState.Error(e)
-                return@launch
-            }
-            _registerState.value = DataState.Success(result)
+            userRepository.registerUserFlow(nickname).onEach { dataState ->
+                _registerState.value = dataState
+            }.launchIn(viewModelScope)
         }
     }
 
+    fun getMorangUserWithGoogleSignIn(context: Context) {
+        viewModelScope.launch {
+            userRepository.getMorangUserWithGoogleFlow(context).onEach { dataState ->
+                _userData.value = dataState
+            }.launchIn(viewModelScope)
+        }
+    }
+
+    fun getIdTokenWithKakaoSignIn(context: Context) {
+        viewModelScope.launch {
+            userRepository.getMorangUserWithKakaoFlow(context).onEach { dataState ->
+                _userData.value = dataState
+            }.launchIn(viewModelScope)
+        }
+    }
+
+    fun getIdTokenWithGP(uid: String) {
+        viewModelScope.launch {
+            userRepository.getMorangUserWithGPFlow(uid).onEach { dataState ->
+                _userData.value = dataState
+            }.launchIn(viewModelScope)
+        }
+    }
+
+    fun putId(uid: Int) {
+        viewModelScope.launch {
+            userRepository
+        }
+    }
+
+    @Deprecated("이 함수는 더 이상 사용되지 않습니다")
     fun getGoogleIdToken(context: Context) {
         viewModelScope.launch {
             _googleTokenState.value = DataState.Loading("구글 토큰 가져오는 중")
@@ -68,6 +103,7 @@ constructor(
         }
     }
 
+    @Deprecated("이 함수는 더 이상 사용되지 않습니다")
     fun getKakaoToken(context: Context) {
         viewModelScope.launch {
             _kakaoTokenState.value = DataState.Loading("카카오 토큰 가져오는 중")
@@ -81,9 +117,10 @@ constructor(
         }
     }
 
+    @Deprecated("이 함수는 더 이상 사용되지 않습니다")
     fun getTokenIdKakao(token: OAuthToken) {
         viewModelScope.launch {
-            _idTokenState.value = DataState.Loading("ID토큰 가져오는 중")
+            _idTokenState.value = DataState.Loading("ID 토큰 가져오는 중")
             val idToken = try {
                 authModel.getIdTokenKakao(token.accessToken, token.refreshToken)
             } catch (e: Exception) {
@@ -94,9 +131,10 @@ constructor(
         }
     }
 
+    @Deprecated("이 함수는 더 이상 사용되지 않습니다")
     fun getTokenIdGoogle(token: String) {
         viewModelScope.launch {
-            _idTokenState.value = DataState.Loading("ID토큰 가져오는 중")
+            _idTokenState.value = DataState.Loading("ID 토큰 가져오는 중")
             val idToken = try {
                 authModel.getIdTokenGoogle(token)
             } catch (e: Exception) {
@@ -107,9 +145,10 @@ constructor(
         }
     }
 
+    @Deprecated("이 함수는 더 이상 사용되지 않습니다")
     fun getTokenIdGP(uid: String) {
         viewModelScope.launch {
-            _idTokenState.value = DataState.Loading("ID토큰 가져오는 중")
+            _idTokenState.value = DataState.Loading("ID 토큰 가져오는 중")
             val result = try {
                 authModel.getIdTokenGP(uid)
             } catch (e: Exception) {
@@ -120,6 +159,7 @@ constructor(
         }
     }
 
+    @Deprecated("이 함수는 더 이상 사용되지 않습니다")
     fun getTokenIdAuthUser(registerFlag: Boolean) {
         viewModelScope.launch {
             _idTokenState.value = DataState.Loading("ID 토큰 가져오는 중")
@@ -133,15 +173,19 @@ constructor(
         }
     }
 
+    @Deprecated("이 함수는 더 이상 사용되지 않습니다")
     fun getUserByToken() {
         viewModelScope.launch {
-            _userData.value = DataState.Loading("유저 정보 가져오는 중")
+
+            _userData.value = DataState.Loading("ID 토큰 가져오는 중")
             val idToken = try {
-                authModel.getIdToken()
+                authModel.getIdTokenByUser()
             } catch (e: Exception) {
                 _userData.value = DataState.Error(e)
                 return@launch
             }
+
+            _userData.value = DataState.Loading("유저 정보 가져오는 중")
             val user = try {
                 userRepository.getUserByToken(idToken)
             } catch (e: Exception) {

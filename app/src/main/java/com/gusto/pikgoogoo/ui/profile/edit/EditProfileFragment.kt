@@ -6,7 +6,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
-import android.widget.Toast
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import com.gusto.pikgoogoo.databinding.FragmentEditProfileBinding
@@ -17,8 +16,7 @@ import com.gusto.pikgoogoo.ui.components.fragment.LoadingIndicatorFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class EditProfileFragment
-constructor(
+class EditProfileFragment(
     val currentNickname: String
 ) : LoadingIndicatorFragment() {
 
@@ -68,7 +66,7 @@ constructor(
         if (nickname.isEmpty() || nickname.length > 13) {
             showMessage("닉네임은 1자 이상, 13자 이하로 하여 주십시오")
         } else {
-            viewModel.editProfileNickname(nickname)
+            viewModel.editUserNickname(nickname)
         }
     }
 
@@ -83,10 +81,6 @@ constructor(
                     showMessage(dataState.result)
                     (parentFragment as MyInfoFragment).refresh()
                     parentFragmentManager.popBackStackImmediate()
-                }
-                is DataState.Failure -> {
-                    loadEnd()
-                    showMessage(dataState.string)
                 }
                 is DataState.Error -> {
                     loadEnd()

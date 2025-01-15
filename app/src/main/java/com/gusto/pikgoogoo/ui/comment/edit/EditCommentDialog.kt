@@ -54,7 +54,7 @@ constructor(
         binding.bSubmit.setOnClickListener {
             val text = binding.etComment.text.toString().trim()
             if (!text.equals(comment) && !text.equals("")) {
-                parentViewModel.editComment(commentId, text)
+                parentViewModel.updateComment(commentId, text)
                 (requireParentFragment() as BackPressableFragment).backPressed()
             } else {
                 if (text.equals(comment)) {

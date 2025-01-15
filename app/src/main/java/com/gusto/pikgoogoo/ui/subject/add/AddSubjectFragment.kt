@@ -103,10 +103,10 @@ class AddSubjectFragment : LoadingIndicatorFragment() {
                     adapter.setList(dataState.result)
                     binding.spCategory.setSelection(dataState.result.size-1)
                 }
-                is DataState.Failure -> {
+                /*is DataState.Failure -> {
                     loadEnd()
                     showMessage(dataState.string)
-                }
+                }*/
                 is DataState.Error -> {
                     loadEnd()
                     showMessage(dataState.exception.localizedMessage?:"에러")
@@ -127,10 +127,10 @@ class AddSubjectFragment : LoadingIndicatorFragment() {
                     )
                     parentFragmentManager.popBackStack(FragmentTags.ADD_SUBJECT_TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
                 }
-                is DataState.Failure -> {
+                /*is DataState.Failure -> {
                     loadEnd()
                     showMessage(dataState.string)
-                }
+                }*/
                 is DataState.Error -> {
                     loadEnd()
                     showMessage(dataState.exception.localizedMessage?:"에러")

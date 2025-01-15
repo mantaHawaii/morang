@@ -81,10 +81,6 @@ class BookmarkedSubjectListFragment : LoadingIndicatorFragment() {
                     loadEnd()
                     adapter.submitList(dataState.result)
                 }
-                is DataState.Failure -> {
-                    loadEnd()
-                    Toast.makeText(requireActivity(), dataState.string, Toast.LENGTH_LONG).show()
-                }
                 is DataState.Error -> {
                     loadEnd()
                     Toast.makeText(requireActivity(), dataState.exception.localizedMessage, Toast.LENGTH_LONG).show()
@@ -100,9 +96,6 @@ class BookmarkedSubjectListFragment : LoadingIndicatorFragment() {
                     loadEnd()
                     adapter.setGradeList(dataState.result)
                     viewModel.getBookmarkedSubjects(requireActivity())
-                }
-                is DataState.Failure -> {
-                    loadEnd()
                 }
                 is DataState.Error -> {
                     loadEnd()

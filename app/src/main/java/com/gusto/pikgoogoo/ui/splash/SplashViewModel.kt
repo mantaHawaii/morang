@@ -10,6 +10,8 @@ import com.gusto.pikgoogoo.data.repository.CacheRepository
 import com.gusto.pikgoogoo.data.repository.GradeRepository
 import com.gusto.pikgoogoo.util.DataState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -31,13 +33,9 @@ constructor(
 
     fun getDBVersionFromServer() {
         viewModelScope.launch {
-            val result = try {
-                gradeRepository.getServerDBVersion()
-            } catch (e: Exception) {
-                _dbVersionData.value = DataState.Error(e)
-                return@launch
-            }
-            _dbVersionData.value = DataState.Success(result)
+            gradeRepository.getServerDBVersionFlow().onEach { dataState ->
+                _dbVersionData.value = dataState
+            }.launchIn(viewModelScope)
         }
     }
 
@@ -53,6 +51,8 @@ constructor(
             .apply()
     }
 
+    //삭제 완료
+    @Deprecated("2025-01-15 이후로 사용하지 않는 함수")
     fun updateLocalGradeTable() {
         viewModelScope.launch {
             val result = try {
@@ -62,6 +62,14 @@ constructor(
                 return@launch
             }
             _gradeDataState.value = DataState.Success(result)
+        }
+    }
+
+    fun updateLocalGrade() {
+        viewModelScope.launch {
+            gradeRepository.updateLocalUserGrade().onEach { dataState ->
+                _gradeDataState.value = dataState
+            }.launchIn(viewModelScope)
         }
     }
 

@@ -87,9 +87,6 @@ constructor(
                         attachRadiobutton(item, binding.rgReports)
                     }
                 }
-                is DataState.Failure -> {
-                    Toast.makeText(requireActivity(), dataState.string, Toast.LENGTH_SHORT).show()
-                }
                 is DataState.Error -> {
                     Toast.makeText(requireActivity(), dataState.exception.localizedMessage?:"에러", Toast.LENGTH_SHORT).show()
                 }
@@ -101,9 +98,6 @@ constructor(
                 is DataState.Success -> {
                     Toast.makeText(requireActivity(), dataState.result, Toast.LENGTH_SHORT).show()
                     dismiss()
-                }
-                is DataState.Failure -> {
-                    Toast.makeText(requireActivity(), dataState.string, Toast.LENGTH_SHORT).show()
                 }
                 is DataState.Error -> {
                     Toast.makeText(requireActivity(), dataState.exception.localizedMessage?:"에러", Toast.LENGTH_SHORT).show()

@@ -147,10 +147,6 @@ constructor(
                     binding.tvTerm.text = startDate+" ~ "+endDate
                     viewModel.setTerm(startDate, endDate)
                 }
-                is DataState.Failure -> {
-                    loadEnd()
-                    Toast.makeText(requireActivity(), dataState.string, Toast.LENGTH_LONG).show()
-                }
                 is DataState.Error -> {
                     loadEnd()
                     Toast.makeText(requireActivity(), dataState.exception.localizedMessage?:"에러", Toast.LENGTH_LONG).show()
@@ -174,10 +170,6 @@ constructor(
                     adapter.setList(dataState.result)
                     binding.tvAllVoteCount.text = adapter.allVoteCount.toString()
                     binding.tvAvgVoteCount.text = (Math.round(adapter.avgVoteCount*100f)/100f).toString()
-                }
-                is DataState.Failure -> {
-                    loadEnd()
-                    Toast.makeText(requireActivity(), dataState.string, Toast.LENGTH_LONG).show()
                 }
                 is DataState.Error -> {
                     loadEnd()

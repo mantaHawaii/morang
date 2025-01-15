@@ -58,21 +58,21 @@ constructor(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
 
         dialog!!.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         binding = DialogGradeListBinding.inflate(inflater, container, false)
         val v = binding.root
 
         adapter = GradeAdapter({ id ->
-            viewModel.setGradeIcon(id)
+            viewModel.updateUserGrade(id)
         }, myGrade, myGradeIcon)
 
         binding.rvGrade.adapter = adapter
 
         binding.rvGrade.layoutManager = GridLayoutManager(requireActivity(), 5)
 
-        viewModel.getGrade()
+        viewModel.fetchGradeList()
 
         binding.ibClose.setOnClickListener { dismiss() }
 
@@ -92,9 +92,6 @@ constructor(
                 is DataState.Success -> {
                     adapter.setList(dataState.result)
                 }
-                is DataState.Failure -> {
-                    showMessage(dataState.string)
-                }
                 is DataState.Error -> {
                     showMessage(dataState.exception.localizedMessage?:"에러")
                 }
@@ -109,9 +106,6 @@ constructor(
                     parentViewModel.getMyUserData(requireActivity())
                     parentFragmentManager.popBackStackImmediate()
                     dismiss()
-                }
-                is DataState.Failure -> {
-                    showMessage(dataState.string)
                 }
                 is DataState.Error -> {
                     showMessage(dataState.exception.localizedMessage?:"에러")

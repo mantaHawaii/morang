@@ -62,16 +62,13 @@ class SplashActivity : MRActivity() {
                     val currentVersion = viewModel.getDBVersionFromPref(this)
                     if (dataState.result > currentVersion) {
                         serverDBVersion = dataState.result
-                        viewModel.updateLocalGradeTable()
+                        viewModel.updateLocalGrade()
                         viewModel.deleteCache(this)
                         Log.d(TAG, "2")
                     } else {
                         Log.d(TAG, "3")
                         getStarted()
                     }
-                }
-                is DataState.Failure -> {
-                    Log.d(TAG, "5")
                 }
                 is DataState.Error -> {
                     Log.d(TAG, "6"+dataState.exception.toString())
@@ -86,9 +83,6 @@ class SplashActivity : MRActivity() {
                 is DataState.Success -> {
                     viewModel.setDBVersionOfPerf(this, serverDBVersion)
                     getStarted()
-                }
-                is DataState.Failure -> {
-                    Log.d(TAG, "10")
                 }
                 is DataState.Error -> {
                     Log.d(TAG, "11: "+dataState.exception.toString())

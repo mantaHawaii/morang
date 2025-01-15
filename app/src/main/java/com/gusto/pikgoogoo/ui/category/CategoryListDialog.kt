@@ -74,9 +74,6 @@ class CategoryListDialog : DialogFragment(R.layout.dialog_categories) {
                     adapter.list.addAll(dataState.result)
                     binding.rvCategoires.adapter = adapter
                 }
-                is DataState.Failure -> {
-                    Toast.makeText(requireActivity(), dataState.string, Toast.LENGTH_SHORT).show()
-                }
                 is DataState.Error -> {
                     Toast.makeText(requireActivity(), dataState.exception.localizedMessage?:"에러", Toast.LENGTH_SHORT).show()
                 }

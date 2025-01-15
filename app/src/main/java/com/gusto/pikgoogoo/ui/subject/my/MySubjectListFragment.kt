@@ -74,10 +74,6 @@ class MySubjectListFragment : LoadingIndicatorFragment() {
                     loadEnd()
                     adapter.submitList(dataState.result)
                 }
-                is DataState.Failure -> {
-                    loadEnd()
-                    Toast.makeText(requireActivity(), dataState.string, Toast.LENGTH_LONG).show()
-                }
                 is DataState.Error -> {
                     loadEnd()
                     Toast.makeText(requireActivity(), dataState.exception.localizedMessage, Toast.LENGTH_LONG).show()
@@ -95,9 +91,6 @@ class MySubjectListFragment : LoadingIndicatorFragment() {
                     viewModel.params.offset = 0
                     viewModel.params.order = 0
                     viewModel.getMySubjects(requireActivity())
-                }
-                is DataState.Failure -> {
-                    loadEnd()
                 }
                 is DataState.Error -> {
                     loadEnd()

@@ -11,7 +11,6 @@ import com.gusto.pikgoogoo.data.repository.GradeRepository
 import com.gusto.pikgoogoo.data.repository.UserRepository
 import com.gusto.pikgoogoo.util.DataState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -27,20 +26,26 @@ constructor(
 
     private val _userData: MutableLiveData<DataState<User>> = MutableLiveData()
     private val _gradeData: MutableLiveData<DataState<List<Grade>>> = MutableLiveData()
+    private val _deleteState: MutableLiveData<DataState<String>> = MutableLiveData()
 
     val userData: LiveData<DataState<User>>
         get() = _userData
     val gradeData: LiveData<DataState<List<Grade>>>
         get() = _gradeData
+    val deleteState: LiveData<DataState<String>>
+        get() = _deleteState
 
+    @Deprecated("2025-01-15 일자로 폐기된 함수")
     fun getMyUserData(context: Context){
         viewModelScope.launch {
+
             val uid = try {
                 userRepository.getUidFromShareRef(context)
             } catch (e: Exception) {
                 _userData.value = DataState.Error(e)
                 return@launch
             }
+
             val user = try {
                 userRepository.getUserById(uid)
             } catch (e: Exception) {
@@ -51,6 +56,32 @@ constructor(
         }
     }
 
+    fun fetchCurrentUserInfo(context: Context) {
+        viewModelScope.launch {
+            userRepository.getCurrentMorangUserFlow(context).onEach { dataState ->
+                _userData.value = dataState
+            }.launchIn(viewModelScope)
+        }
+    }
+
+    fun fetchGradeList() {
+        viewModelScope.launch {
+            gradeRepository.getGradeFromLocalFlow().onEach { dataState ->
+                _gradeData.value = dataState
+            }.launchIn(viewModelScope)
+        }
+    }
+
+    fun deleteUser() {
+        viewModelScope.launch {
+            userRepository.deleteUserFlow().onEach { dataState ->
+                _deleteState.value = dataState
+            }.launchIn(viewModelScope)
+        }
+    }
+
+    //삭제 완료
+    @Deprecated("2025-01-15 이후로 사용하지 않는 함수")
     fun getGrade() {
         viewModelScope.launch {
             val grades = try {

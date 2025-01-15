@@ -92,10 +92,6 @@ class MyCommentListFragment : LoadingIndicatorFragment() {
                     loadEnd()
                     adapter.setList(dataState.result)
                 }
-                is DataState.Failure -> {
-                    loadEnd()
-                    Toast.makeText(requireContext(), dataState.string, Toast.LENGTH_LONG).show()
-                }
                 is DataState.Error -> {
                     loadEnd()
                     Toast.makeText(requireContext(), dataState.exception.localizedMessage, Toast.LENGTH_LONG).show()
@@ -110,10 +106,6 @@ class MyCommentListFragment : LoadingIndicatorFragment() {
                 is DataState.Success -> {
                     loadEnd()
                     Toast.makeText(requireActivity(), dataState.result, Toast.LENGTH_SHORT).show()
-                }
-                is DataState.Failure -> {
-                    loadEnd()
-                    Toast.makeText(requireContext(), dataState.string, Toast.LENGTH_LONG).show()
                 }
                 is DataState.Error -> {
                     loadEnd()
@@ -130,10 +122,6 @@ class MyCommentListFragment : LoadingIndicatorFragment() {
                     loadEnd()
                     adapter.setGradeList(dataState.result)
                     viewModel.getMyComments(requireActivity())
-                }
-                is DataState.Failure -> {
-                    loadEnd()
-                    Toast.makeText(requireContext(), dataState.string, Toast.LENGTH_LONG).show()
                 }
                 is DataState.Error -> {
                     loadEnd()

@@ -37,14 +37,19 @@ constructor(
 
     val params = AddArticleReqParam("", 0, "", 0)
 
+    @Deprecated("2025-01-15 이후로 사용되지 않는 함수")
     fun insertArticle() {
         viewModelScope.launch {
+
+            _insertState.value = DataState.Loading("ID 토큰 가져오는 중")
             val idToken = try {
-                authModel.getIdToken()
+                authModel.getIdTokenByUser()
             } catch (e: Exception) {
                 _insertState.value = DataState.Error(e)
                 return@launch
             }
+
+            _insertState.value = DataState.Loading("서버에 항목 쓰기 요청 중")
             val result = try {
                 articleRepository.insertArticle(
                     idToken,
@@ -61,8 +66,24 @@ constructor(
         }
     }
 
+    fun submitArticleInsert() {
+        viewModelScope.launch {
+            articleRepository.insertArticleFlow(
+                params.content,
+                params.subjectId,
+                params.imageUrl.replace(".jpg", ""),
+                params.cropImage)
+                .onEach { dataState ->
+                    _insertState.value = dataState
+                }.launchIn(viewModelScope)
+        }
+    }
+
+    //삭제 완료
+    @Deprecated("2025-01-15 이후로 사용되지 않는 함수")
     fun storeImage(uri: Uri, context: Context) {
 
+        _storageState.value = DataState.Loading("유저 아이디 가져오는 중")
         val uid = try {
             userRepository.getUidFromShareRef(context)
         } catch (e: Exception) {
@@ -73,6 +94,7 @@ constructor(
         val fileName = generateFileName(uid)
 
         viewModelScope.launch {
+            _storageState.value = DataState.Loading("파이어베이스에 이미지 저장 중")
             val result = try {
                 firebaseImageRepository.storeImage(uri, fileName)
             } catch (e: Exception) {
@@ -82,6 +104,14 @@ constructor(
             _storageState.value = DataState.Success(result)
         }
 
+    }
+
+    fun submitImageStore(uri: Uri, context: Context) {
+        viewModelScope.launch {
+            firebaseImageRepository.storeImageFlow(uri, context).onEach { dataState ->
+                _storageState.value = dataState
+            }.launchIn(viewModelScope)
+        }
     }
 
     private fun generateFileName(uid: Int): String {

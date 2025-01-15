@@ -26,19 +26,21 @@ class RegisterFragment : LoadingIndicatorFragment()  {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
 
         binding = FragmentRegistBinding.inflate(inflater, container, false)
 
         val v = binding.root
 
         binding.bRegist.setOnClickListener {
-            viewModel.getTokenIdAuthUser(true)
+            val nickname = binding.etNickname.text.toString()
+            viewModel.registerUser(nickname)
         }
 
         binding.etNickname.setOnEditorActionListener { v, actionId, event ->
             if (actionId == EditorInfo.IME_ACTION_DONE || event?.keyCode == KeyEvent.KEYCODE_ENTER) {
-                viewModel.getTokenIdAuthUser(true)
+                val nickname = binding.etNickname.text.toString()
+                viewModel.registerUser(nickname)
                 return@setOnEditorActionListener true
             } else {
                 return@setOnEditorActionListener false
@@ -54,7 +56,7 @@ class RegisterFragment : LoadingIndicatorFragment()  {
     }
 
     private fun subscribeObservers() {
-        viewModel.idTokenState.observe(viewLifecycleOwner, Observer { dataState ->
+        viewModel.registerState.observe(viewLifecycleOwner, Observer { dataState ->
             when(dataState) {
                 is DataState.Loading -> {
                     loadStart(dataState.string)
@@ -63,15 +65,9 @@ class RegisterFragment : LoadingIndicatorFragment()  {
                     loadEnd()
                     showMessage(dataState.exception.localizedMessage?:"에러")
                 }
-                is DataState.Failure -> {
-                    loadEnd()
-                    showMessage(dataState.string)
-                }
                 is DataState.Success -> {
                     loadEnd()
-                    if (dataState.result.second == LoginCode.REIGSTER) {
-                        viewModel.requestRegister(dataState.result.first, binding.etNickname.text.toString())
-                    }
+                    parentFragmentManager.popBackStackImmediate()
                 }
             }
         })

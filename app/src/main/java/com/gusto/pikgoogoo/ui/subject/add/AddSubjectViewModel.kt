@@ -10,9 +10,6 @@ import com.gusto.pikgoogoo.data.repository.CategoryRepository
 import com.gusto.pikgoogoo.data.repository.SubjectRepository
 import com.gusto.pikgoogoo.util.DataState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -52,7 +49,7 @@ constructor(
     fun insertSubject(title: String, categoryId: Int) {
         viewModelScope.launch {
             val idToken = try {
-                authModel.getIdToken()
+                authModel.getIdTokenByUser()
             } catch (e: Exception) {
                 _responseData.value = DataState.Error(e)
                 return@launch

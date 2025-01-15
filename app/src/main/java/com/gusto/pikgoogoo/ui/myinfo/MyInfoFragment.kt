@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
@@ -37,7 +36,7 @@ class MyInfoFragment : LoadingIndicatorFragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
 
         binding = FragmentMyInfoBinding.inflate(inflater, container, false)
 
@@ -66,7 +65,7 @@ class MyInfoFragment : LoadingIndicatorFragment() {
             dialog.show(childFragmentManager, FragmentTags.WITHDRAWAL_TAG)
         }
 
-        viewModel.getMyUserData(requireActivity())
+        viewModel.fetchCurrentUserInfo(requireActivity())
 
         binding.ibGrade.setOnClickListener {
             GradeListDialog(user.id, user.grade, user.gradeIcon).show(childFragmentManager, FragmentTags.GRADE_LIST_TAG)
@@ -102,12 +101,8 @@ class MyInfoFragment : LoadingIndicatorFragment() {
                     if (user.gradeIcon > 0) {
                         iconSelector.setImageViewGradeIcon(binding.ibGrade, user.gradeIcon)
                     } else {
-                        viewModel.getGrade()
+                        viewModel.fetchGradeList()
                     }
-                }
-                is DataState.Failure -> {
-                    loadEnd()
-                    showMessage(dataState.string)
                 }
                 is DataState.Error -> {
                     loadEnd()
@@ -124,9 +119,20 @@ class MyInfoFragment : LoadingIndicatorFragment() {
                     loadEnd()
                     iconSelector.setImageViewGradeIcon(binding.ibGrade, user.grade, dataState.result)
                 }
-                is DataState.Failure -> {
+                is DataState.Error -> {
                     loadEnd()
-                    showMessage(dataState.string)
+                    showMessage(dataState.exception.localizedMessage?:"에러")
+                }
+            }
+        })
+        viewModel.deleteState.observe(viewLifecycleOwner, Observer { dataState ->
+            when(dataState) {
+                is DataState.Loading -> {
+                    loadStart(dataState.string)
+                }
+                is DataState.Success -> {
+                    loadEnd()
+                    parentFragmentManager.popBackStackImmediate()
                 }
                 is DataState.Error -> {
                     loadEnd()
@@ -137,7 +143,7 @@ class MyInfoFragment : LoadingIndicatorFragment() {
     }
 
     fun refresh() {
-        viewModel.getMyUserData(requireActivity())
+        viewModel.fetchCurrentUserInfo(requireActivity())
     }
 
 }

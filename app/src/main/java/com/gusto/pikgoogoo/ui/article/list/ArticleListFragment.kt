@@ -307,11 +307,6 @@ constructor(
                     binding.srlArticles.isRefreshing = false
 
                 }
-                is DataState.Failure -> {
-                    loadEnd()
-                    showMessage(dataState.string)
-                    binding.srlArticles.isRefreshing = false
-                }
                 is DataState.Error -> {
                     loadEnd()
                     showMessage(dataState.exception.localizedMessage?:"에러")
@@ -327,10 +322,6 @@ constructor(
                 is DataState.Success -> {
                     loadEnd()
                     articleAdapter.notifyItemChanged(dataState.result.second, 1)
-                }
-                is DataState.Failure -> {
-                    loadEnd()
-                    showMessage(dataState.string)
                 }
                 is DataState.Error -> {
                     loadEnd()
@@ -350,10 +341,6 @@ constructor(
                     } else if (dataState.result.startsWith("UNBOOKMARK")) {
                         binding.ibBookmark.setImageResource(R.drawable.ic_baseline_bookmark_border_24)
                     }
-                }
-                is DataState.Failure -> {
-                    loadEnd()
-                    showMessage(dataState.string)
                 }
                 is DataState.Error -> {
                     loadEnd()

@@ -31,8 +31,6 @@ class AddArticleFragment(
         if (uri != null) {
             binding.ivPreview.setImageURI(uri)
             imageUri = uri
-        } else {
-            imageUri = uri
         }
     }
 
@@ -40,7 +38,7 @@ class AddArticleFragment(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
 
         binding = FragmentAddArticleBinding.inflate(inflater, container, false)
         val v = binding.root
@@ -65,11 +63,6 @@ class AddArticleFragment(
             backPressed(FragmentExitStyle.SLIDE_DOWN)
         }
 
-        binding.etContent.setOnEditorActionListener { v, actionId, event ->
-
-            return@setOnEditorActionListener false
-        }
-
         return v
     }
 
@@ -86,13 +79,13 @@ class AddArticleFragment(
 
     private fun submitArticle() {
         if (imageUri != null) {
-            viewModel.storeImage(imageUri!!, requireActivity())
+            viewModel.submitImageStore(imageUri!!, requireActivity())
         } else {
             viewModel.params.content = binding.etContent.text.toString()
             viewModel.params.subjectId = subjectId
             viewModel.params.imageUrl = ""
             viewModel.params.cropImage = 0
-            viewModel.insertArticle()
+            viewModel.submitArticleInsert()
         }
     }
 
@@ -108,10 +101,6 @@ class AddArticleFragment(
                     showMessage(dataState.result)
                     backPressed(FragmentExitStyle.SLIDE_DOWN)
                 }
-                is DataState.Failure -> {
-                    loadEnd()
-                    showMessage(dataState.string)
-                }
                 is DataState.Error -> {
                     loadEnd()
                     showMessage(dataState.exception.localizedMessage?:"에러")
@@ -124,21 +113,17 @@ class AddArticleFragment(
                     loadEnd()
                     showMessage(dataState.exception.localizedMessage?: "에러")
                 }
-                is DataState.Failure -> {
-                    loadEnd()
-                    showMessage(dataState.string)
-                }
                 is DataState.Loading -> {
                     loadStart(dataState.string)
                 }
                 is DataState.Success -> {
                     loadEnd()
-                    var cropImage = if (binding.sCropImage.isChecked) 1 else 0
+                    val cropImage = if (binding.sCropImage.isChecked) 1 else 0
                     viewModel.params.content = binding.etContent.text.toString()
                     viewModel.params.subjectId = subjectId
                     viewModel.params.imageUrl = dataState.result
                     viewModel.params.cropImage = cropImage
-                    viewModel.insertArticle()
+                    viewModel.submitArticleInsert()
                 }
             }
         })

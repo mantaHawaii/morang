@@ -52,7 +52,7 @@ constructor(
             }
 
             binding.llDelete.setOnClickListener {
-                parentViewModel.deleteComment(commentId)
+                parentViewModel.removeComment(commentId)
                 backPressed()
             }
 

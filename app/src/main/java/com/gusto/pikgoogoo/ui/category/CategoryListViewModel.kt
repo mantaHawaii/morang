@@ -28,6 +28,7 @@ constructor(
 
     fun getCategories() {
         viewModelScope.launch {
+            _categoriesData.value = DataState.Loading("서버에 카테고리 데이터 요청 중")
             val result = try {
                 categoryRepository.getCategories()
             } catch (e: Exception) {

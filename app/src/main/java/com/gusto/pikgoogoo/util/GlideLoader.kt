@@ -21,10 +21,11 @@ constructor() {
             .with(iv.context)
             .load(uri)
             .listener(object : RequestListener<Drawable> {
+
                 override fun onLoadFailed(
                     e: GlideException?,
                     model: Any?,
-                    target: Target<Drawable>?,
+                    target: Target<Drawable>,
                     isFirstResource: Boolean
                 ): Boolean {
                     onFailure()
@@ -32,10 +33,10 @@ constructor() {
                 }
 
                 override fun onResourceReady(
-                    resource: Drawable?,
-                    model: Any?,
+                    resource: Drawable,
+                    model: Any,
                     target: Target<Drawable>?,
-                    dataSource: DataSource?,
+                    dataSource: DataSource,
                     isFirstResource: Boolean
                 ): Boolean {
                     onSuccess()
@@ -60,10 +61,11 @@ constructor() {
             .with(iv.context)
             .load(uri)
             .listener(object : RequestListener<Drawable> {
+
                 override fun onLoadFailed(
                     e: GlideException?,
                     model: Any?,
-                    target: Target<Drawable>?,
+                    target: Target<Drawable>,
                     isFirstResource: Boolean
                 ): Boolean {
                     onFailure()
@@ -71,10 +73,10 @@ constructor() {
                 }
 
                 override fun onResourceReady(
-                    resource: Drawable?,
-                    model: Any?,
+                    resource: Drawable,
+                    model: Any,
                     target: Target<Drawable>?,
-                    dataSource: DataSource?,
+                    dataSource: DataSource,
                     isFirstResource: Boolean
                 ): Boolean {
                     onSuccess()
