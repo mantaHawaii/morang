@@ -5,11 +5,11 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gusto.pikgoogoo.data.Category
-import com.gusto.pikgoogoo.data.repository.AuthModel
-import com.gusto.pikgoogoo.data.repository.CategoryRepository
 import com.gusto.pikgoogoo.data.repository.SubjectRepository
 import com.gusto.pikgoogoo.util.DataState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -17,9 +17,7 @@ import javax.inject.Inject
 class AddSubjectViewModel
 @Inject
 constructor(
-    private val categoryRepository: CategoryRepository,
-    private val subjectRepository: SubjectRepository,
-    private val authModel: AuthModel
+    private val subjectRepository: SubjectRepository
 ): ViewModel() {
 
     private val _categoriesData: MutableLiveData<DataState<List<Category>>> = MutableLiveData()
@@ -31,36 +29,22 @@ constructor(
         get() = _responseData
 
     init {
-        getCategories()
+        fetchCategories()
     }
 
-    fun getCategories() {
+    fun fetchCategories() {
         viewModelScope.launch {
-            val categories = try {
-                categoryRepository.getCategories()
-            } catch (e: Exception) {
-                _categoriesData.value = DataState.Error(e)
-                return@launch
-            }
-            _categoriesData.value = DataState.Success(categories)
+            subjectRepository.fetchCategoriesFlow().onEach { dataState ->
+                _categoriesData.value = dataState
+            }.launchIn(viewModelScope)
         }
     }
 
     fun insertSubject(title: String, categoryId: Int) {
         viewModelScope.launch {
-            val idToken = try {
-                authModel.getIdTokenByUser()
-            } catch (e: Exception) {
-                _responseData.value = DataState.Error(e)
-                return@launch
-            }
-            val result = try {
-                subjectRepository.addSubject(title, categoryId, idToken)
-            } catch (e: Exception) {
-                _responseData.value = DataState.Error(e)
-                return@launch
-            }
-            _responseData.value = DataState.Success(result)
+            subjectRepository.insertSubjectFlow(title, categoryId).onEach { dataState ->
+                _responseData.value = dataState
+            }.launchIn(viewModelScope)
         }
     }
     

@@ -59,7 +59,7 @@ class CategoryListDialog : DialogFragment(R.layout.dialog_categories) {
         if (!isSubscribedObservers) {
             subscribeObservers()
         }
-        viewModel.getCategories()
+        viewModel.fetchCategories()
     }
 
     fun subscribeObservers() {

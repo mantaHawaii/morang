@@ -31,6 +31,7 @@ import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.ktx.storage
 import com.gusto.pikgoogoo.R
 import com.gusto.pikgoogoo.data.Article
+import com.gusto.pikgoogoo.data.ArticleOrder
 import com.gusto.pikgoogoo.util.AdViewHolder
 import com.gusto.pikgoogoo.util.GlideLoader
 import com.gusto.pikgoogoo.util.LoadingViewHolder
@@ -48,15 +49,7 @@ constructor(
     private val VIEW_TYPE_AD = 0
     private val VIEW_TYPE_GENERAL = 1
 
-    var totalVoteCount: Int = 0
-
-    val FLAG_MONTH = 30
-    val FLAG_ALL = 0
-    val FLAG_DAY = 1
-    val FLAG_WEEK = 7
-    val FLAG_NEW = 101
-
-    var flagFor = FLAG_ALL
+    var flagFor = 0
     private val nfe = NumberFormatEditor()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -80,52 +73,22 @@ constructor(
         val viewType = getItemViewType(position)
         when (viewType) {
             VIEW_TYPE_GENERAL -> {
-
                 val item = itemList.get(position)
-
                 if (holder is ArticleHolder) {
-
                     if (item is Article) {
-
                         holder.bind(position, item, onClick)
-                        when (flagFor) {
-                            FLAG_NEW -> {
-                                var rate = 0.0
-                                if (totalVoteCount != 0) {
-                                    rate =
-                                        ((item.voteCount).toDouble() / totalVoteCount.toDouble()) * 100.0
-                                }
-                                holder.tvVoteRate.text = nfe.transfromNumber(rate)
-                                holder.pbVote.progress = rate.toInt()
-                            }
-                            else -> {
-                                var rate = 0.0
-                                if (totalVoteCount != 0) {
-                                    rate =
-                                        ((item.voteCount).toDouble() / totalVoteCount.toDouble()) * 100.0
-                                }
-                                holder.tvVoteRate.text = nfe.transfromNumber(rate)
-                                holder.pbVote.progress = rate.toInt()
-                            }
-                        }
                     }
                 }
-
             }
             VIEW_TYPE_AD -> {
-
                 val item = itemList.get(position)
-
                 if (holder is AdViewHolder) {
                     if (item is NativeAd) {
                         populateNativeAdView(item, holder.getAdView())
                     }
                 }
-
             }
-            else -> {
-
-            }
+            else -> { }
         }
     }
 
@@ -139,23 +102,7 @@ constructor(
         } else {
             if (holder is ArticleHolder) {
                 val viewOne = holder.root.findViewById<TextView>(R.id.tv_one)
-                val item = itemList.get(position) as Article
-                viewOne.visibility = View.VISIBLE
-                ValueAnimator.ofFloat(0f, 100f).apply {
-                    duration = 1000
-                    addUpdateListener { updatedAnimation ->
-                        var currentValue = updatedAnimation.animatedValue as Float
-                        viewOne.translationY = -currentValue*2.75f
-                        viewOne.alpha = 1.0f-(currentValue/100.0f)
-                        if (viewOne.alpha == 0f) {
-                            viewOne.visibility = View.INVISIBLE
-                        }
-                    }
-                    start()
-                }
-                item.voteCount += 1
-                item.voteCountFor += 1
-                holder.tvVoteCount.text = item.voteCount.toString()
+                fadeOutWithSlideUp(viewOne)
             }
         }
     }
@@ -176,16 +123,8 @@ constructor(
     fun setList(list: List<Article>) {
         itemList.clear()
         itemList.addAll(list)
-        determineTheRanking()
+        //determineTheRanking()****************************
         notifyDataSetChanged()
-    }
-
-    fun prepareAdSlot(indices: List<Int>) {
-        for (index in indices) {
-            if (itemCount > index) {
-                itemList.add(index, )
-            }
-        }
     }
 
     fun bindLoadingItem() {
@@ -193,13 +132,8 @@ constructor(
     }
 
     fun removeLoadingItem() {
-        var cnt = 0
-        for (i in itemList) {
-            if (i is Article && i.id == 0) {
-                itemList.removeAt(cnt)
-            }
-            cnt++
-        }
+        val index = itemList.indexOfFirst { it is Article && it.id == 0 }
+        itemList.removeAt(index)
     }
 
     fun clearAds() {
@@ -213,16 +147,27 @@ constructor(
         }
     }
 
-    fun setPeriodComposition(flag: Int, voteCount: Int){
-        flagFor = flag
-        totalVoteCount = voteCount
+    fun fadeOutWithSlideUp(view: View) {
+        view.visibility = View.VISIBLE
+        ValueAnimator.ofFloat(0f, 100f).apply {
+            duration = 1000
+            addUpdateListener { updatedAnimation ->
+                var currentValue = updatedAnimation.animatedValue as Float
+                view.translationY = -currentValue*2.75f
+                view.alpha = 1.0f-(currentValue/100.0f)
+                if (view.alpha == 0f) {
+                    view.visibility = View.INVISIBLE
+                }
+            }
+            start()
+        }
     }
 
     private fun determineTheRanking() {
         var rank = 1
         var preVoteCount = -1
         var preRank = 0
-        if (flagFor != FLAG_NEW) {
+        if (flagFor != ArticleOrder.NEW.value) {
             for (item in itemList) {
                 if (item is Article) {
                     if (item.voteCount < preVoteCount) {
@@ -260,21 +205,21 @@ constructor(
         }
 
         if (nativeAd.price == null) {
-            adView.priceView!!.visibility = View.INVISIBLE
+            adView.priceView!!.visibility = View.GONE
         } else {
             adView.priceView!!.visibility = View.VISIBLE
             (adView.priceView as TextView?)!!.text = nativeAd.price
         }
 
         if (nativeAd.store == null) {
-            adView.storeView!!.visibility = View.INVISIBLE
+            adView.storeView!!.visibility = View.GONE
         } else {
             adView.storeView!!.visibility = View.VISIBLE
             (adView.storeView as TextView?)!!.text = nativeAd.store
         }
 
         if (nativeAd.starRating == null) {
-            adView.starRatingView!!.visibility = View.INVISIBLE
+            adView.starRatingView!!.visibility = View.GONE
         } else {
             (adView.starRatingView as RatingBar)
                 .setRating(nativeAd.starRating!!.toFloat())
@@ -282,7 +227,7 @@ constructor(
         }
 
         if (nativeAd.advertiser == null) {
-            adView.advertiserView!!.visibility = View.INVISIBLE
+            adView.advertiserView!!.visibility = View.GONE
         } else {
             (adView.advertiserView as TextView?)!!.text = nativeAd.advertiser
             adView.advertiserView!!.visibility = View.VISIBLE
@@ -291,6 +236,12 @@ constructor(
         // Assign native ad object to the native view.
 
         adView.setNativeAd(nativeAd)
+    }
+
+    enum class ActionType(val value: Int) {
+        VOTE(0),
+        COMMENT(1),
+        ROOT(2)
     }
 
     class ArticleHolder(view: View, val nfe: NumberFormatEditor) : RecyclerView.ViewHolder(view) {
@@ -306,9 +257,6 @@ constructor(
         val cvVote: CardView
         val cvComment: CardView
         val root: View
-
-        private val resizedSize = "_400x400"
-        private val fileExtension = ".jpg"
 
         init {
             tvRank = view.findViewById(R.id.tv_rank)
@@ -340,6 +288,9 @@ constructor(
             tvCommentCount.text = nfe.transfromNumber(item.commentCount)
             tvVoteCount.text = nfe.transfromNumber(item.voteCount)
 
+            tvVoteRate.text = nfe.transfromNumber(item.voteRate.toDouble())
+            pbVote.progress = item.voteRate.toInt()
+
             val loader = GlideLoader()
             val onFailure = {
 
@@ -360,15 +311,15 @@ constructor(
 
 
             cvVote.setOnClickListener {
-                onClick(0, pos, item.id, item.content)
+                onClick(ActionType.VOTE.value, pos, item.id, item.content)
             }
 
             cvComment.setOnClickListener {
-                onClick(1, pos, item.id, item.content)
+                onClick(ActionType.COMMENT.value, pos, item.id, item.content)
             }
 
             root.setOnClickListener {
-                onClick(2, pos, item.id, item.content)
+                onClick(ActionType.ROOT.value, pos, item.id, item.content)
             }
 
         }
@@ -392,8 +343,6 @@ constructor(
     }
 
 }
-
-data class LcItem(val id: Int, var count: Int)
 
 private class ArticleDiffCallback : DiffUtil.ItemCallback<Article>() {
     override fun areItemsTheSame(oldItem: Article, newItem: Article): Boolean {

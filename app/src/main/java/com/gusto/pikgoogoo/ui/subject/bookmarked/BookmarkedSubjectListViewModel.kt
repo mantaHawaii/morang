@@ -38,42 +38,22 @@ constructor(
     val gradeData: LiveData<DataState<List<Grade>>>
         get() = _gradeData
 
-    private val subjects = mutableListOf<Subject>()
-    var moreFlag = true
     val params = BookmarkedSubjectListParameter(0, 0)
 
-    fun getBookmarkedSubjects(context: Context) {
+    fun fetchBookmarkedSubjects(context: Context) {
         viewModelScope.launch {
-            val userId = try {
-                userRepository.getUidFromShareRef(context)
-            } catch (e: Exception) {
-                _subjectsData.value = DataState.Error(e)
-                return@launch
-            }
-            if (params.offset == 0) {
-                subjects.clear()
-            }
-            val result = try {
-                subjectRepository.getBookmarkedSubjects(userId, params.order, params.offset)
-            } catch (e: Exception) {
-                _subjectsData.value = DataState.Error(e)
-                return@launch
-            }
-            moreFlag = result.size > 0
-            subjects.addAll(result)
-            _subjectsData.value = DataState.Success(result)
+            subjectRepository.fetchBookmarkedSubjectsFlow(context, params.order, params.offset)
+                .onEach { dataState ->
+                    _subjectsData.value = dataState
+                }.launchIn(viewModelScope)
         }
     }
 
-    fun getGrade() {
+    fun fetchGrade() {
         viewModelScope.launch {
-            val result = try {
-                gradeRepository.getGradeFromLocal()
-            } catch (e: Exception) {
-                _gradeData.value = DataState.Error(e)
-                return@launch
-            }
-            _gradeData.value = DataState.Success(result)
+            gradeRepository.getGradeFromLocalFlow().onEach { dataState ->
+                _gradeData.value = dataState
+            }.launchIn(viewModelScope)
         }
     }
 

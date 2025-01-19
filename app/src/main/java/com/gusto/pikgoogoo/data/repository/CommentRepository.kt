@@ -40,6 +40,9 @@ constructor(
     fun fetchCommentsFlow(subjectId: Int, articleId: Int, order: Int, offset: Int) = flow {
         try {
             emit(DataState.Loading("코멘트 가져오는 중"))
+            if (offset == 0) {
+                comments.clear()
+            }
             val res = webService.getComments(subjectId, articleId, order, offset)
             if (isStatusCodeSuccess(res)) {
                 val commentList = commentMapper.mapFromEntityList(res.comments)
@@ -52,45 +55,6 @@ constructor(
             emit(DataState.Error(e))
         }
     }.flowOn(Dispatchers.IO)
-
-    //삭제 완료
-    @Deprecated("2025-01-15 이후로 사용하지 않는 함수")
-    suspend fun commentOnArticle(token: String, articleId: Int, subjectId: Int, comment: String): String {
-        val res = withContext(Dispatchers.IO) {
-            webService.commentOnArticle(token, articleId, subjectId, comment)
-        }
-        if (res.status.code == "111") {
-            return res.status.message
-        } else {
-            throw Exception(res.status.message)
-        }
-    }
-
-    //삭제 완료
-    @Deprecated("2025-01-15 이후로 사용하지 않는 함수")
-    suspend fun getComments(subjectId: Int, articleId: Int, order: Int, offset: Int): List<Comment> {
-        val res = withContext(Dispatchers.IO) {
-            webService.getComments(subjectId, articleId, order, offset)
-        }
-        if (res.status.code == "111") {
-            return commentMapper.mapFromEntityList(res.comments)
-        } else {
-            throw Exception(res.status.message)
-        }
-    }
-
-    //삭제 완료
-    @Deprecated("2025-01-15 이후로 사용하지 않는 함수")
-    suspend fun likeComment(token: String, commentId: Int): String {
-        val res = withContext(Dispatchers.IO) {
-            webService.likeComment(token, commentId)
-        }
-        if (res.status.code == "111") {
-            return res.status.message
-        } else {
-            throw Exception(res.status.message)
-        }
-    }
 
     fun likeCommentFlow(commentId: Int) = flow {
         try {
@@ -111,19 +75,6 @@ constructor(
             emit(DataState.Error(e))
         }
     }.flowOn(Dispatchers.IO)
-
-    //삭제 완료
-    @Deprecated("2025-01-15 이후로 사용하지 않는 함수")
-    suspend fun editComment(token: String, commentId: Int, comment: String): String {
-        val res = withContext(Dispatchers.IO) {
-            webService.editComment(token, commentId, comment)
-        }
-        if (res.status.code == "111") {
-            return res.status.message
-        } else {
-            throw Exception(res.status.message)
-        }
-    }
 
     fun updateCommentFlow(commentId: Int, comment: String) = flow {
         try {

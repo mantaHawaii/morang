@@ -51,23 +51,9 @@ constructor(
             .apply()
     }
 
-    //삭제 완료
-    @Deprecated("2025-01-15 이후로 사용하지 않는 함수")
-    fun updateLocalGradeTable() {
-        viewModelScope.launch {
-            val result = try {
-                gradeRepository.insertGradeFromServer()
-            } catch (e: Exception) {
-                _gradeDataState.value = DataState.Error(e)
-                return@launch
-            }
-            _gradeDataState.value = DataState.Success(result)
-        }
-    }
-
     fun updateLocalGrade() {
         viewModelScope.launch {
-            gradeRepository.updateLocalUserGrade().onEach { dataState ->
+            gradeRepository.updateLocalUserGradeFlow().onEach { dataState ->
                 _gradeDataState.value = dataState
             }.launchIn(viewModelScope)
         }

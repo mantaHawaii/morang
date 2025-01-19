@@ -16,7 +16,7 @@ class ReportRepository
 constructor(
     private val webService: WebService,
     private val rrMapper: ReportReasonMapper
-){
+) : ParentRepository() {
 
     suspend fun getReportReasons(type: Int): List<ReportReason> {
         val res = withContext(Dispatchers.IO) {
@@ -29,6 +29,21 @@ constructor(
         }
     }
 
+    fun fetchReportReasonsFlow(type: Int) = flow {
+        try {
+            emit(DataState.Loading())
+            val res = webService.getReportReasons(type)
+            if (isStatusCodeSuccess(res)) {
+                val data = rrMapper.mapFromEntityList(res.reportReasons)
+                emit(DataState.Success(data))
+            } else {
+                emit(DataState.Error(formatErrorFromStatus(res)))
+            }
+        } catch (e: Exception) {
+            emit(DataState.Error(e))
+        }
+    }.flowOn(Dispatchers.IO)
+
     suspend fun reportArticle(articleId: Int, reportId: Int, userId: Int): String {
         val res = withContext(Dispatchers.IO) {
             webService.reportArticle(articleId, reportId, userId)
@@ -40,6 +55,20 @@ constructor(
         }
     }
 
+    fun reportArticleFlow(articleId: Int, reportId: Int, userId: Int) = flow {
+        try {
+            emit(DataState.Loading())
+            val res = webService.reportArticle(articleId, reportId, userId)
+            if (isStatusCodeSuccess(res)) {
+                emit(DataState.Success(res.status.message))
+            } else {
+                emit(DataState.Error(formatErrorFromStatus(res)))
+            }
+        } catch (e: Exception) {
+            emit(DataState.Error(e))
+        }
+    }.flowOn(Dispatchers.IO)
+
     suspend fun reportComment(commentId: Int, reportId: Int, userId: Int): String {
         val res = withContext(Dispatchers.IO) {
             webService.reportComment(commentId, reportId, userId)
@@ -50,5 +79,19 @@ constructor(
             throw Exception(res.status.message)
         }
     }
+
+    fun reportCommentFlow(commentId: Int, reportId: Int, userId: Int) = flow {
+        try {
+            emit(DataState.Loading())
+            val res = webService.reportComment(commentId, reportId, userId)
+            if (isStatusCodeSuccess(res)) {
+                emit(DataState.Success(res.status.message))
+            } else {
+                emit(DataState.Error(formatErrorFromStatus(res)))
+            }
+        } catch (e: Exception) {
+            emit(DataState.Error(e))
+        }
+    }.flowOn(Dispatchers.IO)
 
 }

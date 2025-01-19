@@ -1,10 +1,5 @@
 package com.gusto.pikgoogoo.data
 
-import android.os.Handler
-import android.os.Looper
-import com.google.firebase.ktx.Firebase
-import com.google.firebase.storage.StorageReference
-import com.google.firebase.storage.ktx.storage
 import com.gusto.pikgoogoo.util.EntityMapper
 import javax.inject.Inject
 
@@ -20,7 +15,7 @@ constructor(): EntityMapper<ArticleEntity, Article> {
             voteCount = entity.voteCount,
             commentCount = entity.commentCount,
             createdDatetime = entity.createdDatetime,
-            voteCountFor = entity.voteCountFor,
+            totalVotesInPeriod = entity.totalVotesInPeriod,
             cropImage = entity.cropImage
         )
     }
@@ -34,7 +29,7 @@ constructor(): EntityMapper<ArticleEntity, Article> {
             voteCount = domainModel.voteCount,
             commentCount = domainModel.commentCount,
             createdDatetime = domainModel.createdDatetime,
-            voteCountFor = domainModel.voteCountFor,
+            totalVotesInPeriod = domainModel.totalVotesInPeriod,
             cropImage = domainModel.cropImage
         )
     }

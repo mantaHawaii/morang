@@ -5,7 +5,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gusto.pikgoogoo.data.Grade
-import com.gusto.pikgoogoo.data.repository.AuthModel
 import com.gusto.pikgoogoo.data.repository.GradeRepository
 import com.gusto.pikgoogoo.util.DataState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,8 +17,7 @@ import javax.inject.Inject
 class GradeViewModel
 @Inject
 constructor(
-    private val gradeRepository: GradeRepository,
-    private val authModel: AuthModel
+    private val gradeRepository: GradeRepository
 ) : ViewModel() {
 
     private val _gradeData: MutableLiveData<DataState<List<Grade>>> = MutableLiveData()
@@ -30,52 +28,12 @@ constructor(
     val gradeIconData: LiveData<DataState<Int>>
         get() = _gradeIconData
 
-    //삭제 완료
-    @Deprecated("2025-01-15 이후로 사용하지 않는 함수")
-    fun getGrade() {
-        viewModelScope.launch {
-
-            _gradeData.value = DataState.Loading("등급 정보 요청 중")
-            val result = try {
-                gradeRepository.getGradeFromLocal()
-            } catch (e: Exception) {
-                _gradeData.value = DataState.Error(e)
-                return@launch
-            }
-            _gradeData.value = DataState.Success(result)
-
-        }
-    }
 
     fun fetchGradeList() {
         viewModelScope.launch {
             gradeRepository.getGradeFromLocalFlow().onEach { dataState ->
                 _gradeData.value = dataState
             }.launchIn(viewModelScope)
-        }
-    }
-
-    //삭제 완료
-    @Deprecated("2025-01-15 이후로 사용하지 않는 함수")
-    fun setGradeIcon(gradeIcon: Int) {
-        viewModelScope.launch {
-
-            _gradeIconData.value = DataState.Loading("ID 토큰 정보 가져오는 중")
-            val idToken = try {
-                authModel.getIdTokenByUser()
-            } catch (e: Exception) {
-                _gradeIconData.value = DataState.Error(e)
-                return@launch
-            }
-
-            _gradeIconData.value = DataState.Loading("등급 아이콘 설정 중")
-            val result = try {
-                gradeRepository.setGradeIcon(idToken, gradeIcon)
-            } catch (e: Exception) {
-                _gradeIconData.value = DataState.Error(e)
-                return@launch
-            }
-            _gradeIconData.value = DataState.Success(result)
         }
     }
 
@@ -86,7 +44,4 @@ constructor(
             }.launchIn(viewModelScope)
         }
     }
-
-
-
 }

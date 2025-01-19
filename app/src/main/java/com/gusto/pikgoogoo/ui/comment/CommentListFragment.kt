@@ -39,6 +39,7 @@ constructor(
     private lateinit var firebaseAnalytics: FirebaseAnalytics
 
     private var moreFlag = true
+    private var lastDataSize = 0
 
     @Inject
     lateinit var loginManager: LoginManager
@@ -164,7 +165,8 @@ constructor(
                 }
                 is DataState.Success -> {
                     loadEnd()
-                    moreFlag = dataState.result.size > 0
+                    val data = dataState.result
+                    moreFlag = data.size != lastDataSize || viewModel.params.offset == 0
                     mAdapter.setList(dataState.result)
                     if (viewModel.params.order == 1) {
                         binding.tvCommentOrder.text = "최신댓글"

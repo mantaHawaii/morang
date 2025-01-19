@@ -28,19 +28,13 @@ constructor() : ViewModel() {
         } catch (e: Exception) {
             return
         }
-        var n = 0
-        var m = -1
-        for (item in list) {
-            if (item.equals(words)) {
-                m = n
-            }
-            n++
+        val searchWords = words.trim()
+        val sameWordsIndex = list.indexOfFirst { it.trim() == searchWords }
+        if (sameWordsIndex >= 0) {
+            list.removeAt(sameWordsIndex)
         }
-        if (m >= 0) {
-            list.removeAt(m)
-        }
-        if (words.length > 0) {
-            list.add(0, words)
+        if (searchWords.length > 0) {
+            list.add(0, searchWords)
         }
         editor.putString(key, gson.toJson(list))
         editor.apply()

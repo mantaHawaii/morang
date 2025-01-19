@@ -73,7 +73,7 @@ class ArticleBehaviorDialog(
                     dismiss()
                 }
                 R.id.ll_vote -> {
-                    (parentFragment as ArticleListFragment).voteArticle(pos, articleId)
+                    (parentFragment as ArticleListFragment).voteArticle(articleId)
                     dismiss()
                 }
                 R.id.ll_graph -> {

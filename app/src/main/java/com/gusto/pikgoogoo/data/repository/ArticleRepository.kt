@@ -1,11 +1,11 @@
 package com.gusto.pikgoogoo.data.repository
 
+import android.util.Log
 import com.gusto.pikgoogoo.api.WebService
 import com.gusto.pikgoogoo.data.*
 import com.gusto.pikgoogoo.datasource.FirebaseDataSource
 import com.gusto.pikgoogoo.util.DataState
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
@@ -20,134 +20,144 @@ constructor(
     private val firebaseDataSource: FirebaseDataSource
 ) : ParentRepository() {
 
-    //삭제 완료
-    @Deprecated("2025-01-15 이후로 사용하지 않는 함수입니다")
-    suspend fun insertArticle(token: String, content: String, subjectId: Int, imageUrl: String, cropImage: Int): String {
-        val res = withContext(Dispatchers.IO) {
-            webService.addArticle(token, content, subjectId, imageUrl, cropImage)
-        }
-        if (res.status.code == "111") {
-            return res.status.message
-        } else {
-            throw Exception(res.status.message)
-        }
-    }
+    private var articles = mutableListOf<Article>()
 
     fun insertArticleFlow(content: String, subjectId: Int, imageUrl: String, cropImage: Int) = flow {
         try {
             emit(DataState.Loading("항목 데이터 작업 중"))
             val firebaseUser = firebaseDataSource.getCurrentUser()
             val idToken = firebaseDataSource.getIDTokenByUser(firebaseUser)
-            val result = insertArticle(idToken, content, subjectId, imageUrl, cropImage)
-            emit(DataState.Success(result))
+            val res = webService.addArticle(idToken, content, subjectId, imageUrl, cropImage)
+            if (isStatusCodeSuccess(res)) {
+                emit(DataState.Success(res.status.message))
+            } else {
+                emit(DataState.Error(formatErrorFromStatus(res)))
+            }
         } catch (e: Exception) {
             emit(DataState.Error(e))
         }
     }.flowOn(Dispatchers.IO)
-
-    suspend fun fetchArticles(subjectId: Int, order: Int, offset: Int, searchWords: String): List<Article> {
-        val res = withContext(Dispatchers.IO) {
-            webService.getArticles(subjectId, order, offset, searchWords)
-        }
-        if (res.status.code == "111") {
-            return articleMapper.mapFromEntityList(res.articles)
-        } else {
-            throw Exception(res.status.message)
-        }
-    }
 
     fun fetchArticlesFlow(subjectId: Int, order: Int, offset: Int, searchWords: String) = flow {
-        emit(DataState.Loading("항목 정보 가져오는 중"))
         try {
-            val result = fetchArticles(subjectId, order, offset, searchWords)
-            emit(DataState.Success(result))
+            Log.d("MR_AR", "fetchArticlesFlow called")
+            emit(DataState.Loading("항목 정보 가져오는 중"))
+
+            if (offset == 0) {
+                articles.clear()
+            }
+
+            val resArticle = webService.getArticles(subjectId, order, offset, searchWords)
+            if (isStatusCodeSuccess(resArticle)) {
+                val data = articleMapper.mapFromEntityList(resArticle.articles)
+                var totalVoteCount = 0
+                if (data.isNotEmpty()) {
+                    totalVoteCount = data[0].totalVotesInPeriod
+                    for (item in data) {
+                        item.imageUri = firebaseDataSource.getThumbUri(item.imageUrl)
+                        item.voteRate = if (totalVoteCount == 0) 0.0f else (item.voteCount.toFloat() / totalVoteCount.toFloat()) * 100.0f
+                    }
+                }
+                articles.addAll(data)
+                if (order != ArticleOrder.NEW.value) {
+                    rankAll(articles)
+                }
+                emit(DataState.Success(articles))
+            } else {
+                emit(DataState.Error(formatErrorFromStatus(resArticle)))
+            }
+
         } catch (e: Exception) {
             emit(DataState.Error(e))
         }
     }.flowOn(Dispatchers.IO)
 
-    suspend fun voteArticle(token: String, articleId: Int): String {
-        val res = withContext(Dispatchers.IO) {
-            webService.voteArticle(token, articleId)
-        }
-        if (res.status.code == "111") {
-            return res.status.message
-        } else {
-            throw Exception(res.status.message)
-        }
-    }
-
-    fun voteArticleFlow(token: String, articleId: Int) = flow {
+    fun voteArticleFlow(articleId: Int, order: Int) = flow {
         try {
             emit(DataState.Loading("투표 정보 입력 중"))
-            val result = voteArticle(token, articleId)
-            emit(DataState.Success(result))
+            val firebaseUser = firebaseDataSource.getCurrentUser()
+            val idToken = firebaseDataSource.getIDTokenByUser(firebaseUser)
+            val res = webService.voteArticle(idToken, articleId)
+            if (isStatusCodeSuccess(res)) {
+                val articleIndex = articles.indexOfFirst { it.id == articleId }
+                if (articleIndex != -1) {
+                    articles[articleIndex].apply {
+                        voteCount += 1
+                        totalVotesInPeriod += 1
+                        voteRate = (voteCount.toFloat() / totalVotesInPeriod.toFloat()) * 100.0f
+                    }
+                }
+                if (order != ArticleOrder.NEW.value) {
+                    articles.sortByDescending { it.voteCount }
+                }
+                emit(DataState.Success(articles))
+            } else {
+                emit(DataState.Error(formatErrorFromStatus(res)))
+            }
         } catch (e: Exception) {
             emit(DataState.Error(e))
         }
     }.flowOn(Dispatchers.IO)
-
-    suspend fun getVoteCount(subjectId: Int, order: Int): Int {
-        val res = withContext(Dispatchers.IO) {
-            webService.getTotalVoteCount(subjectId, order)
-        }
-        if (res.status.code == "111") {
-            return res.totalVoteCount
-        } else {
-            throw Exception(res.status.code+":"+res.status.message)
-        }
-    }
 
     fun getVoteCountFlow(subjectId: Int, order: Int) = flow {
         try {
             emit(DataState.Loading("투표 수 가져오는 중"))
-            val result = getVoteCount(subjectId, order)
-            emit(DataState.Success(result))
+            val res = webService.getTotalVoteCount(subjectId, order)
+            if (isStatusCodeSuccess(res)) {
+                emit(DataState.Success(res.totalVoteCount))
+            } else {
+                emit(DataState.Error(formatErrorFromStatus(res)))
+            }
         } catch (e: Exception) {
             emit(DataState.Error(e))
         }
     }.flowOn(Dispatchers.IO)
-
-    suspend fun getVoteHistory(articleId: Int, startDate: String, endDate: String): List<VoteHistory> {
-        val res = withContext(Dispatchers.IO) {
-            webService.getVoteHistory(articleId, startDate, endDate)
-        }
-        if (res.status.code == "111") {
-            return voteHistoryMapper.mapFromEntityList(res.voteHistoryData)
-        } else {
-            throw Exception(res.status.code+":"+res.status.message)
-        }
-    }
 
     fun getVoteHistoryFlow(articleId: Int, startDate: String, endDate: String) = flow {
         try {
             emit(DataState.Loading("투표 기록 가져오는 중"))
-            val result = getVoteHistory(articleId, startDate, endDate)
-            emit(DataState.Success(result))
+            val res = webService.getVoteHistory(articleId, startDate, endDate)
+            if (isStatusCodeSuccess(res)) {
+                val voteHistory = voteHistoryMapper.mapFromEntityList(res.voteHistoryData)
+                emit(DataState.Success(voteHistory))
+            } else {
+                emit(DataState.Error(formatErrorFromStatus(res)))
+            }
         } catch (e: Exception) {
             emit(DataState.Error(e))
         }
     }.flowOn(Dispatchers.IO)
-
-    suspend fun getArticleCreatedDate(articleId: Int): String {
-        val res = withContext(Dispatchers.IO) {
-            webService.getArticleCreatedDate(articleId)
-        }
-        if (res.status.code == "111") {
-            return res.articleCreatedDate
-        } else {
-            throw Exception(res.status.code+":"+res.status.message)
-        }
-    }
 
     fun getArticleCreatedDateFlow(articleId: Int) = flow {
         try {
             emit(DataState.Loading("항목 생성 정보 가져오는 중"))
-            val result = getArticleCreatedDate(articleId)
-            emit(DataState.Success(result))
+            val res = webService.getArticleCreatedDate(articleId)
+            if (isStatusCodeSuccess(res)) {
+                emit(DataState.Success(res.articleCreatedDate))
+            } else {
+                emit(DataState.Error(formatErrorFromStatus(res)))
+            }
         } catch (e: Exception) {
             emit(DataState.Error(e))
         }
     }.flowOn(Dispatchers.IO)
+
+    private fun rankAll(list: MutableList<Article>) {
+        if (list.isEmpty()) {
+            return
+        }
+        var rank = 1
+        var realRank = 1
+        var lastVoteCount = 0
+        list.sortByDescending { it.voteCount }
+        list.forEach { article ->
+            if (!(article.voteCount == lastVoteCount && article.voteCount != 0)) {
+                rank = realRank
+            }
+            article.rank = rank
+            realRank++
+            lastVoteCount = article.voteCount
+        }
+    }
     
 }

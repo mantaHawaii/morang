@@ -5,14 +5,15 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.gms.ads.nativead.NativeAd
 import com.gusto.pikgoogoo.data.Article
+import com.gusto.pikgoogoo.data.repository.AdRepository
 import com.gusto.pikgoogoo.data.repository.ArticleRepository
-import com.gusto.pikgoogoo.data.repository.AuthModel
-import com.gusto.pikgoogoo.data.repository.FirebaseImageRepository
 import com.gusto.pikgoogoo.data.repository.SubjectRepository
-import com.gusto.pikgoogoo.data.repository.UserRepository
 import com.gusto.pikgoogoo.util.DataState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -22,27 +23,25 @@ class ArticleListViewModel
 constructor(
     private val articleRepository: ArticleRepository,
     private val subjectRepository: SubjectRepository,
-    private val authModel: AuthModel,
-    private val userRepository: UserRepository,
-    private val firebaseImageRepository: FirebaseImageRepository
+    private val adRepository: AdRepository
 ) : ViewModel() {
 
     private val _articlesData: MutableLiveData<DataState<List<Article>>> = MutableLiveData()
+    private val _adsData: MutableLiveData<DataState<NativeAd>> = MutableLiveData()
     private val _bookmarkRes: MutableLiveData<DataState<String>> = MutableLiveData()
     private val _voteRes: MutableLiveData<DataState<Pair<String, Int>>> = MutableLiveData()
-    private val _totalVoteCountData: MutableLiveData<Int> = MutableLiveData()
-    private val _isBookmarked: MutableLiveData<Boolean> = MutableLiveData()
+    private val _bookmarkData: MutableLiveData<DataState<Boolean>> = MutableLiveData()
 
     val articlesData: LiveData<DataState<List<Article>>>
         get() = _articlesData
+    val adsData: LiveData<DataState<NativeAd>>
+        get() = _adsData
     val bookmarkRes: LiveData<DataState<String>>
         get() = _bookmarkRes
     val voteRes: LiveData<DataState<Pair<String, Int>>>
         get() = _voteRes
-    val totalVoteCountData: LiveData<Int>
-        get() = _totalVoteCountData
-    val isBookmarked: LiveData<Boolean>
-        get() = _isBookmarked
+    val bookmarkData: LiveData<DataState<Boolean>>
+        get() = _bookmarkData
 
     val params: ArticleParameter =
         ArticleParameter(
@@ -51,98 +50,45 @@ constructor(
             0,
             0
         )
-    private val articles = mutableListOf<Article>()
-    var moreFlag = true
 
     fun fetchArticles() {
         viewModelScope.launch {
-
-            if (params.offset == 0) {
-                articles.clear()
-            }
-
-            _articlesData.value = DataState.Loading("데이터 가져오는 중")
-
-            val data = try {
-                articleRepository.fetchArticles(params.subjectId, params.order, params.offset, params.searchWords)
-            } catch (e: Exception) {
-                _articlesData.value = DataState.Error(e)
-                return@launch
-            }
-
-            val voteCount = try {
-                articleRepository.getVoteCount(params.subjectId, params.order)
-            } catch (e: Exception) {
-                _articlesData.value = DataState.Error(e)
-                return@launch
-            }
-
-            _totalVoteCountData.value = voteCount
-
-            for (item in data) {
-                item.voteRate = if (voteCount == 0) 0.0f else (item.voteCount / voteCount) * 100.0f
-                val thumbnailUri = try {
-                    firebaseImageRepository.getThumbUri(item.imageUrl)
-                } catch (e: Exception) {
-                    _articlesData.value = DataState.Error(e)
-                    return@launch
-                }
-                item.imageUri = thumbnailUri
-            }
-
-            moreFlag = data.size > 0
-
-            articles.addAll(data)
-            _articlesData.value = DataState.Success(articles)
-
+            articleRepository.fetchArticlesFlow(params.subjectId, params.order, params.offset, params.searchWords)
+                .onEach { dataState ->
+                    _articlesData.value = dataState
+                }.launchIn(viewModelScope)
         }
     }
 
-    fun voteArticle(articleId: Int, pos: Int) {
+    fun fetchAds(context: Context, numberOfAds: Int) {
         viewModelScope.launch {
-            val idToken = try {
-                authModel.getIdTokenByUser()
-            } catch (e: Exception) {
-                _voteRes.value = DataState.Error(e)
-                return@launch
-            }
-            val msg = try {
-                articleRepository.voteArticle(idToken, articleId)
-            } catch (e: Exception) {
-                _voteRes.value = DataState.Error(e)
-                return@launch
-            }
-            _voteRes.value = DataState.Success(Pair(msg, pos))
+            adRepository.fetchAds(context, numberOfAds).onEach { dataState ->
+                _adsData.value = dataState
+            }.launchIn(viewModelScope)
         }
     }
 
-    fun isBookmarked(context: Context) {
+    fun voteArticleSubmit(articleId: Int) {
         viewModelScope.launch {
-            val uid = try {
-                userRepository.getUidFromShareRef(context)
-            } catch (e: Exception) {
-                _isBookmarked.value = false
-                return@launch
-            }
-            _isBookmarked.value = subjectRepository.isBookmarked(params.subjectId, uid)
+            articleRepository.voteArticleFlow(articleId, params.order).onEach { dataState ->
+                _articlesData.value = dataState
+            }.launchIn(viewModelScope)
         }
     }
 
-    fun bookmarkSubject() {
+    fun fetchBookmarkStatus(context: Context) {
         viewModelScope.launch {
-            val idToken = try {
-                authModel.getIdTokenByUser()
-            } catch (e: Exception) {
-                _bookmarkRes.value = DataState.Error(e)
-                return@launch
-            }
-            val msg = try {
-                subjectRepository.bookmarkSubject(params.subjectId, idToken)
-            } catch (e: Exception) {
-                _bookmarkRes.value = DataState.Error(e)
-                return@launch
-            }
-            _bookmarkRes.value = DataState.Success(msg)
+            subjectRepository.fetchBookmarkStatusFlow(context, params.subjectId).onEach { dataState ->
+                _bookmarkData.value = dataState
+            }.launchIn(viewModelScope)
+        }
+    }
+
+    fun addToBookmarks() {
+        viewModelScope.launch {
+            subjectRepository.bookmarkSubjectFlow(params.subjectId).onEach { dataState ->
+                _bookmarkRes.value = dataState
+            }.launchIn(viewModelScope)
         }
     }
 

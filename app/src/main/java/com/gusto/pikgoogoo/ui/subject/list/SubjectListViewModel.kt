@@ -78,11 +78,33 @@ constructor(
         }
     }
 
+    private fun fetchSubjectDefault() {
+        viewModelScope.launch {
+            subjectRepository.fetchSubjectsFlow(params.categoryId, params.order, params.offset)
+                .onEach { dataState ->
+                    _subjectsData.value = dataState
+                }.launchIn(viewModelScope)
+        }
+    }
+
+    private fun fetchSubjectBySearchWords() {
+        viewModelScope.launch {
+            subjectRepository.fetchSubjectsBySearchWordsFlow(
+                params.categoryId,
+                params.order,
+                params.offset,
+                params.searchWords
+            ).onEach { dataState ->
+                _subjectsData.value = dataState
+            }.launchIn(viewModelScope)
+        }
+    }
+
     fun fetchSubjects() {
         if (params.searchWords.length > 0) {
-            getSubjectsBySearchWords()
+            fetchSubjectBySearchWords()
         } else {
-            getSubjects()
+            fetchSubjectDefault()
         }
     }
 

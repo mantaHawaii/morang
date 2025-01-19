@@ -95,7 +95,7 @@ constructor(
         adapter.lineColor = ContextCompat.getColor(activity, R.color.spun_sugar)
         lcVote.setAdapter(adapter)
 
-        viewModel.getArticleCreatedDate(articleId)
+        viewModel.fetchArticleCreatedDate(articleId)
 
         binding.bSetTerm.setOnClickListener {
             if (this::startDate.isInitialized && this::endDate.isInitialized) {
@@ -137,7 +137,7 @@ constructor(
                     cal.add(Calendar.DATE, -6)
 
                     var startDate = ""
-                    var endDate = sdf.format(Date())
+                    val endDate = sdf.format(Date())
 
                     if (cal.time < createdDate) {
                         startDate = sdf.format(createdDate)
@@ -157,7 +157,7 @@ constructor(
             startDate = term.first
             endDate = term.second
             adapter.setStartEnd(term.first, term.second)
-            viewModel.getVoteHistory(articleId, term.first, term.second)
+            viewModel.fetchVoteHistory(articleId, term.first, term.second)
             binding.tvTerm.text = startDate+" ~ "+endDate
         })
         viewModel.voteHistoryData.observe(viewLifecycleOwner, Observer { dataState ->

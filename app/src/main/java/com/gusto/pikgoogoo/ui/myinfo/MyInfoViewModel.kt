@@ -80,18 +80,4 @@ constructor(
         }
     }
 
-    //삭제 완료
-    @Deprecated("2025-01-15 이후로 사용하지 않는 함수")
-    fun getGrade() {
-        viewModelScope.launch {
-            val grades = try {
-                gradeRepository.getGradeFromLocal()
-            } catch (e: Exception){
-                _gradeData.value = DataState.Error(e)
-                return@launch
-            }
-            _gradeData.value = DataState.Success(grades)
-        }
-    }
-
 }

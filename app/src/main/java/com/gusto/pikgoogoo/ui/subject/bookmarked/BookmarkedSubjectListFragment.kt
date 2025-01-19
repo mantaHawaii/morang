@@ -26,6 +26,9 @@ class BookmarkedSubjectListFragment : LoadingIndicatorFragment() {
     private lateinit var binding: FragmentBookmarkedSubjectsBinding
     private val viewModel: BookmarkedSubjectListViewModel by viewModels()
 
+    private var lastDataSize = 0
+    private var moreFlag = true
+
     private lateinit var adapter: SubjectAdapter
 
     override fun onCreateView(
@@ -52,14 +55,14 @@ class BookmarkedSubjectListFragment : LoadingIndicatorFragment() {
         binding.rvBookmarkedSubjects.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
-                if (dy > 0 && !recyclerView.canScrollVertically(1) && !isLoading && viewModel.moreFlag) {
+                if (dy > 0 && !recyclerView.canScrollVertically(1) && !isLoading && moreFlag) {
                     viewModel.params.offset += 1
-                    viewModel.getBookmarkedSubjects(requireActivity())
+                    viewModel.fetchBookmarkedSubjects(requireActivity())
                 }
             }
         })
 
-        viewModel.getGrade()
+        viewModel.fetchGrade()
         binding.bBack.setOnClickListener { (parentFragmentManager.popBackStackImmediate()) }
 
         return v
@@ -79,7 +82,10 @@ class BookmarkedSubjectListFragment : LoadingIndicatorFragment() {
                 }
                 is DataState.Success -> {
                     loadEnd()
-                    adapter.submitList(dataState.result)
+                    val data = dataState.result
+                    moreFlag = data.size != lastDataSize
+                    adapter.submitList(data)
+                    lastDataSize = data.size
                 }
                 is DataState.Error -> {
                     loadEnd()
@@ -95,13 +101,19 @@ class BookmarkedSubjectListFragment : LoadingIndicatorFragment() {
                 is DataState.Success -> {
                     loadEnd()
                     adapter.setGradeList(dataState.result)
-                    viewModel.getBookmarkedSubjects(requireActivity())
+                    resetDataFlags()
+                    viewModel.fetchBookmarkedSubjects(requireActivity())
                 }
                 is DataState.Error -> {
                     loadEnd()
                 }
             }
         })
+    }
+
+    private fun resetDataFlags() {
+        lastDataSize = 0
+        moreFlag = true
     }
 
 }

@@ -33,9 +33,9 @@ data class ArticleEntity(
     @Expose
     var createdDatetime:String,
 
-    @SerializedName("voteCountFor")
+    @SerializedName("totalVotesInPeriod")
     @Expose
-    var voteCountFor:Int,
+    var totalVotesInPeriod:Int,
 
     @SerializedName("cropImage")
     @Expose

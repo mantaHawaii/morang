@@ -8,7 +8,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
@@ -23,6 +22,7 @@ import com.google.firebase.dynamiclinks.ktx.*
 import com.google.firebase.ktx.Firebase
 import com.gusto.pikgoogoo.R
 import com.gusto.pikgoogoo.adapter.ArticleAdapter
+import com.gusto.pikgoogoo.data.ArticleOrder
 import com.gusto.pikgoogoo.data.tag.FragmentTags
 import com.gusto.pikgoogoo.databinding.FragmentArticleListBinding
 import com.gusto.pikgoogoo.ui.article.add.AddArticleFragment
@@ -47,7 +47,6 @@ constructor(
     private val viewModel: ArticleListViewModel by viewModels()
 
     private lateinit var articleAdapter: ArticleAdapter
-    private var totalVoteCount = 0
 
     private lateinit var firebaseAnalytics: FirebaseAnalytics
 
@@ -55,13 +54,15 @@ constructor(
 
     private var isFirst: Boolean = true
 
-    private var adLoader: AdLoader? = null
-
-    private var adCount = 0
-
     private var isSubscribedObservers = false
 
-    private lateinit var indices: List<Int>
+    private var lastInsertedAdIndex = 0
+
+    private var moreFlag = true
+
+    private var lastSize = 0
+
+    private var scrollTopFlag = false
 
     @Inject
     lateinit var loginManager: LoginManager
@@ -76,7 +77,7 @@ constructor(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
 
         viewModel.params.subjectId = subjectId
 
@@ -94,28 +95,26 @@ constructor(
                 alertLogin()
             }
         }
-
         if (mNativeAds.isEmpty()) {
-            loadNativeAds()
+            viewModel.fetchAds(requireActivity(), 3)
         }
-
         articleAdapter = ArticleAdapter(requireActivity(), mutableListOf()) { type, pos, articleId, content ->
             when(type) {
-                0 -> {
+                ArticleAdapter.ActionType.VOTE.value -> {
                     if (loginManager.isLoggedIn()) {
-                        voteArticle(pos, articleId)
+                        voteArticle(articleId)
                     } else {
                         alertLogin()
                     }
                 }
-                1 -> {
+                ArticleAdapter.ActionType.COMMENT.value -> {
                     firebaseAnalytics.logEvent("view_comments_from_article") {
                         param(FirebaseAnalytics.Param.CONTENT_TYPE, "comment")
                         param(FirebaseAnalytics.Param.METHOD, "article")
                     }
                     showComments(articleId, content)
                 }
-                2 -> {
+                ArticleAdapter.ActionType.ROOT.value -> {
                     ArticleBehaviorDialog(pos, articleId, content).show(childFragmentManager, FragmentTags.ARTICLE_BEHAVIOR_TAG)
                 }
             }
@@ -132,7 +131,9 @@ constructor(
                     binding.fabAddArticle.extend()
                 }
 
-                if (dy > 0 && !recyclerView.canScrollVertically(1) && !isLoading && viewModel.moreFlag) {
+                if (dy > 0 && !recyclerView.canScrollVertically(1) && !isLoading && moreFlag) {
+                    Log.d("MR_ALF", "offset 변화 후 불러옵니다:"+ viewModel.params.offset.toString())
+                    scrollTopFlag = false
                     viewModel.params.offset += 1
                     viewModel.fetchArticles()
                 }
@@ -151,6 +152,7 @@ constructor(
             override fun onTabSelected(tab: TabLayout.Tab?) {
                 clearSearch()
                 tab?.let {
+                    scrollTopFlag = true
                     viewModel.params.order = tapPositionToRequestOrder(it.position)
                     viewModel.params.offset = 0
                     viewModel.params.searchWords = ""
@@ -163,6 +165,7 @@ constructor(
 
             override fun onTabReselected(tab: TabLayout.Tab?) {
                 tab?.let {
+                    scrollTopFlag = true
                     viewModel.params.order = tapPositionToRequestOrder(it.position)
                     viewModel.params.offset = 0
                     viewModel.params.searchWords = ""
@@ -177,6 +180,7 @@ constructor(
             if (tab != null) {
                 tab.select()
             } else {
+                scrollTopFlag = true
                 viewModel.fetchArticles()
             }
             isFirst = false
@@ -186,6 +190,7 @@ constructor(
 
         binding.etSearchwords.setOnEditorActionListener { v, actionId, event ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                scrollTopFlag = true
                 viewModel.params.offset = 0
                 viewModel.params.searchWords = binding.etSearchwords.text.toString().trim()
                 viewModel.fetchArticles()
@@ -198,11 +203,11 @@ constructor(
 
         binding.srlArticles.setOnRefreshListener { refreshArticles() }
 
-        viewModel.isBookmarked(requireActivity())
+        viewModel.fetchBookmarkStatus(requireActivity())
 
         binding.ibBookmark.setOnClickListener {
             if (loginManager.isLoggedIn()) {
-                viewModel.bookmarkSubject()
+                viewModel.addToBookmarks()
             } else {
                 alertLogin()
             }
@@ -252,9 +257,9 @@ constructor(
         binding.fcvFal.visibility = View.VISIBLE
     }
 
-    fun voteArticle(pos: Int, articleId: Int) {
+    fun voteArticle(articleId: Int) {
         if (!isLoading) {
-            viewModel.voteArticle(articleId, pos)
+            viewModel.voteArticleSubmit(articleId)
         } else {
             showMessage("이전 요청을 처리 중입니다. 잠시 후에 시도하세요")
         }
@@ -268,52 +273,8 @@ constructor(
         binding.etSearchwords.text.clear()
     }
 
-    private fun loadNativeAds() {
-        mNativeAds.clear()
-        adCount = 0
-        val builder = AdLoader.Builder(requireActivity(), requireActivity().getString(R.string.ad_unit_id))
-        adLoader = builder.forNativeAd { nativeAd ->
-                mNativeAds.add(nativeAd)
-                if (::indices.isInitialized && adCount < indices.size) {
-                    insertAd(indices[adCount], nativeAd)
-                }
-                adCount++
-            }
-            .withAdListener(object: AdListener() {
-                override fun onAdFailedToLoad(errorCode: LoadAdError) {
-                    showMessage(errorCode.message)
-                }
-            })
-            .build()
-        adLoader!!.loadAds(AdRequest.Builder().build(), 3)
-    }
-
     fun subscribeObservers() {
         isSubscribedObservers = true
-        viewModel.articlesData.observe(viewLifecycleOwner, Observer { dataState ->
-            when(dataState) {
-                is DataState.Loading -> {
-                    loadStart(dataState.string)
-                }
-                is DataState.Success -> {
-                    loadEnd()
-                    articleAdapter.setList(dataState.result)
-                    indices = getIndexesOfList(
-                        listSize = dataState.result.size,
-                        minDistance = 7,
-                        minIndex = 3,
-                        limit = 5)
-                    insertAds(indices)
-                    binding.srlArticles.isRefreshing = false
-
-                }
-                is DataState.Error -> {
-                    loadEnd()
-                    showMessage(dataState.exception.localizedMessage?:"에러")
-                    binding.srlArticles.isRefreshing = false
-                }
-            }
-        })
         viewModel.voteRes.observe(viewLifecycleOwner, Observer { dataState ->
             when(dataState) {
                 is DataState.Loading -> {
@@ -348,17 +309,61 @@ constructor(
                 }
             }
         })
-        viewModel.totalVoteCountData.observe(viewLifecycleOwner, Observer { result ->
-            if (result >= 0) {
-                totalVoteCount = result
-                articleAdapter.setPeriodComposition(viewModel.params.order, totalVoteCount)
+        viewModel.bookmarkData.observe(viewLifecycleOwner, Observer { dataState ->
+            when (dataState) {
+                is DataState.Error -> {
+                    loadEnd()
+                    showMessage(dataState.exception.localizedMessage?:"에러")
+                }
+                is DataState.Loading -> {
+                    loadStart(dataState.string)
+                }
+                is DataState.Success -> {
+                    loadEnd()
+                    if (dataState.result) {
+                        binding.ibBookmark.setImageResource(R.drawable.ic_baseline_bookmark_24)
+                    } else {
+                        binding.ibBookmark.setImageResource(R.drawable.ic_baseline_bookmark_border_24)
+                    }
+                }
             }
         })
-        viewModel.isBookmarked.observe(viewLifecycleOwner, Observer { b ->
-            if (b) {
-                binding.ibBookmark.setImageResource(R.drawable.ic_baseline_bookmark_24)
-            } else {
-                binding.ibBookmark.setImageResource(R.drawable.ic_baseline_bookmark_border_24)
+        viewModel.articlesData.observe(viewLifecycleOwner, Observer { dataState ->
+            when (dataState) {
+                is DataState.Error -> {
+                    loadEnd()
+                    showMessage(dataState.exception.localizedMessage?:"에러")
+                }
+                is DataState.Loading -> {
+                    Log.d("MR_ALF", "항목 불러오는 중입니다")
+                    loadStart(dataState.string)
+                }
+                is DataState.Success -> {
+                    loadEnd()
+                    val articles = dataState.result
+                    moreFlag = articles.size != lastSize
+                    articleAdapter.setList(articles)
+                    lastSize = articleAdapter.itemCount
+                    lastInsertedAdIndex = 0
+                    insertAds()
+                    binding.srlArticles.isRefreshing = false
+                    if (scrollTopFlag) {
+                        binding.rvArticles.smoothScrollToPosition(0)
+                    }
+                }
+            }
+        })
+        viewModel.adsData.observe(viewLifecycleOwner, Observer { dataState ->
+            when (dataState) {
+                is DataState.Error -> {
+                    showMessage(dataState.exception.localizedMessage?:"error")
+                }
+                is DataState.Loading -> {}
+                is DataState.Success -> {
+                    val ad = dataState.result
+                    mNativeAds.add(ad)
+                    insertAd(ad)
+                }
             }
         })
     }
@@ -374,77 +379,47 @@ constructor(
         (requireActivity() as MainActivity).alertLogin()
     }
 
+    private fun reset() {
+
+    }
+
     private fun tapPositionToRequestOrder(tabPos: Int): Int {
-        when(tabPos) {
-            0 -> {
-                return articleAdapter.FLAG_ALL
-            }
-            1 -> {
-                return articleAdapter.FLAG_DAY
-            }
-            2 -> {
-                return articleAdapter.FLAG_WEEK
-            }
-            3 -> {
-                return articleAdapter.FLAG_MONTH
-            }
-            4 -> {
-                return articleAdapter.FLAG_NEW
-            }
-            else -> {
-                return 0
-            }
+        return when(tabPos) {
+            0 -> ArticleOrder.ALL.value
+            1 -> ArticleOrder.DAY.value
+            2 -> ArticleOrder.WEEK.value
+            3 -> ArticleOrder.MONTH.value
+            4 -> ArticleOrder.NEW.value
+            else -> ArticleOrder.ALL.value
         }
     }
 
-    private fun insertAdsInArticleItems() {
-        if (mNativeAds.size <= 0) {
-            return
-        }
-        var index = 3
-        if (articleAdapter.itemCount < 3 && articleAdapter.itemCount > 0) {
-            index = articleAdapter.itemCount
-        }
-        val offset = 8
-        for (ad in mNativeAds) {
-            insertAd(index, ad)
-            index = index + offset
-        }
-    }
-
-    private fun insertAds(indices: List<Int>) {
-        var i = 0
-        for (index in indices) {
-            try {
-                insertAd(index, mNativeAds[i++])
-            } catch (e: Exception) {
-
+    private fun insertAd(ad: NativeAd) {
+        val minIndexDistance = 7
+        var index = 0
+        if (lastInsertedAdIndex == 0) {
+            val value1 = articleAdapter.itemCount-1
+            val value2 = lastInsertedAdIndex+minIndexDistance
+            index = minOf(value1, value2)
+            if (index <= 0) {
+                return
             }
+        } else {
+            index = lastInsertedAdIndex+minIndexDistance
         }
-    }
-
-    private fun insertAd(index: Int, ad: NativeAd) {
-        if (index <= articleAdapter.itemCount) {
+        try {
             articleAdapter.itemList.add(index, ad)
             articleAdapter.notifyItemInserted(index)
+            lastInsertedAdIndex = index
+        } catch (e: Exception) {
+            Log.e("MR_ALF", e.localizedMessage?:"에러")
         }
     }
 
-    private fun getIndexesOfList(listSize: Int, minDistance: Int, minIndex: Int, limit: Int): List<Int> {
-        val indice = mutableListOf<Int>()
-        var min = Math.round(listSize.toFloat()/limit)
-        if (min < minIndex) {
-            min = minIndex
+    private fun insertAds() {
+        for (ad in mNativeAds) {
+            insertAd(ad)
         }
-        var index = min
-        while (index < listSize) {
-            indice.add(index)
-            index += minDistance
-            if (indice.size >= limit) {
-                break
-            }
-        }
-        return indice
     }
 
     override fun onDestroyView() {
@@ -458,7 +433,6 @@ constructor(
         for (ad in mNativeAds) {
             ad.destroy()
         }
-        adLoader = null
         super.onDestroy()
     }
 

@@ -5,10 +5,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gusto.pikgoogoo.data.Category
-import com.gusto.pikgoogoo.data.repository.CategoryRepository
+import com.gusto.pikgoogoo.data.repository.SubjectRepository
 import com.gusto.pikgoogoo.util.DataState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -18,7 +17,7 @@ import javax.inject.Inject
 class CategoryListViewModel
 @Inject
 constructor(
-    private val categoryRepository: CategoryRepository
+    private val subjectRepository: SubjectRepository
 ) : ViewModel() {
 
     private val _categoriesData: MutableLiveData<DataState<List<Category>>> = MutableLiveData()
@@ -26,16 +25,11 @@ constructor(
     val categoriesData: LiveData<DataState<List<Category>>>
         get() = _categoriesData
 
-    fun getCategories() {
+    fun fetchCategories() {
         viewModelScope.launch {
-            _categoriesData.value = DataState.Loading("서버에 카테고리 데이터 요청 중")
-            val result = try {
-                categoryRepository.getCategories()
-            } catch (e: Exception) {
-                _categoriesData.value = DataState.Error(e)
-                return@launch
-            }
-            _categoriesData.value = DataState.Success(result)
+            subjectRepository.fetchCategoriesFlow().onEach { dataState ->
+                _categoriesData.value = dataState
+            }.launchIn(viewModelScope)
         }
     }
 

@@ -47,12 +47,14 @@ class SubjectListFragment : LoadingIndicatorFragment() {
     lateinit var loginManager: LoginManager
 
     private var isSubscribedObservers = false
+    private var moreFlag = true
+    private var lastDataSize = 0
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
 
         binding = FragmentSubjectListBinding.inflate(inflater, container, false)
         val v = binding.root
@@ -105,7 +107,7 @@ class SubjectListFragment : LoadingIndicatorFragment() {
                 } else if (dy < -20) {
                     binding.fabAddSubejct.extend()
                 }
-                if (dy > 0 && !recyclerView.canScrollVertically(1) && !isLoading && viewModel.moreFlag) {
+                if (dy > 0 && !recyclerView.canScrollVertically(1) && !isLoading && moreFlag) {
                     viewModel.params.offset += 1
                     viewModel.fetchSubjects()
                 }
@@ -185,7 +187,9 @@ class SubjectListFragment : LoadingIndicatorFragment() {
                 }
                 is DataState.Success -> {
                     loadEnd()
-                    adapter.submitList(dataState.result)
+                    val data = dataState.result
+                    moreFlag = data.size != lastDataSize || viewModel.params.offset == 0
+                    adapter.submitList(data)
                     adapter.notifyDataSetChanged()
                     binding.srlSubjects.isRefreshing = false
                 }
@@ -216,6 +220,7 @@ class SubjectListFragment : LoadingIndicatorFragment() {
         super.backPressed(exitStyle)
         requireActivity().finish()
     }
+
 
     fun showChildFragment(fragment: Fragment, tag: String) {
         childFragmentManager.beginTransaction()
