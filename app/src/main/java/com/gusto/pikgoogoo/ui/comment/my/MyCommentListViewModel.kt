@@ -37,38 +37,14 @@ constructor(
     val gradeData: LiveData<DataState<List<Grade>>>
         get() = _gradeData
 
-    private val comments = mutableListOf<Comment>()
-    private var offset = 0
-    private var order = 0
-    var moreFlag = true
     var params = MyCommentParam(0, 0)
 
-    fun getMyComments(context: Context) {
+    fun fetchMyComments(context: Context) {
         viewModelScope.launch {
-
-            if (offset == 0) {
-                comments.clear()
-            }
-
-            _commentData.value = DataState.Loading("유저 아이디 가져오는 중")
-            val uid = try {
-                userRepository.getUidFromShareRef(context)
-            } catch (e: Exception) {
-                _commentData.value = DataState.Error(e)
-                return@launch
-            }
-
-            _commentData.value = DataState.Loading("서버에 유저 코멘트 데이터 요청 중")
-            val result = try {
-                commentRepository.getUserComments(uid, order, offset)
-            } catch (e: Exception) {
-                _commentData.value = DataState.Error(e)
-                return@launch
-            }
-
-            moreFlag = result.size > 0
-            comments.addAll(result)
-            _commentData.value = DataState.Success(comments)
+            commentRepository.fetchMyComments(context, params.order, params.offset)
+                .onEach { dataState ->
+                    _commentData.value = dataState
+                }.launchIn(viewModelScope)
         }
     }
 

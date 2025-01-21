@@ -32,61 +32,24 @@ constructor(
     val messageData: LiveData<DataState<String>>
         get() = _messageData
 
-    fun getReportReasons(type: Int) {
-        viewModelScope.launch {
-            _reportData.value = DataState.Loading("신고 사유 목록 가져오는 중")
-            val result = try {
-                reportRepository.getReportReasons(type)
-            } catch (e: Exception) {
-                _reportData.value = DataState.Error(e)
-                return@launch
-            }
-            _reportData.value = DataState.Success(result)
-        }
+    fun fetchReportReason(type: Int) {
+        reportRepository.fetchReportReasonsFlow(type).onEach { dataState ->
+            _reportData.value = dataState
+        }.launchIn(viewModelScope)
     }
 
     fun reportArticle(context: Context, articleId: Int, reportId: Int) {
-        viewModelScope.launch {
-
-            _messageData.value = DataState.Loading("유저 아이디 가져오는 중")
-            val uid = try {
-                userRepository.getUidFromShareRef(context)
-            } catch (e: Exception) {
-                _messageData.value = DataState.Error(e)
-                return@launch
-            }
-
-            _messageData.value = DataState.Loading("서버에 항목 신고 요청 중")
-            val result = try {
-                reportRepository.reportArticle(articleId, reportId, uid)
-            } catch (e: Exception) {
-                _messageData.value = DataState.Error(e)
-                return@launch
-            }
-            _messageData.value = DataState.Success(result)
-        }
+        reportRepository.reportArticleFlow(context, articleId, reportId)
+            .onEach { dataState ->
+                _messageData.value = dataState
+            }.launchIn(viewModelScope)
     }
 
     fun reportComment(context: Context, commentId: Int, reportId: Int) {
-        viewModelScope.launch {
-
-            _messageData.value = DataState.Loading("유저 아이디 가져오는 중")
-            val uid = try {
-                userRepository.getUidFromShareRef(context)
-            } catch (e: Exception) {
-                _messageData.value = DataState.Error(e)
-                return@launch
-            }
-
-            _messageData.value = DataState.Loading("서버에 코멘트 신고 요청 중")
-            val result = try {
-                reportRepository.reportComment(commentId, reportId, uid)
-            } catch (e: Exception) {
-                _messageData.value = DataState.Error(e)
-                return@launch
-            }
-            _messageData.value = DataState.Success(result)
-        }
+        reportRepository.reportCommentFlow(context, commentId, reportId)
+            .onEach { dataState ->
+                _messageData.value = dataState
+            }.launchIn(viewModelScope)
     }
 
 }

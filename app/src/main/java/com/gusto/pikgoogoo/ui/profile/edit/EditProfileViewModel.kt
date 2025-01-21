@@ -25,11 +25,9 @@ constructor(
         get() = _responseData
 
     fun editUserNickname(nickname: String) {
-        viewModelScope.launch {
-            userRepository.editUserFlow(nickname).onEach { dataState ->
-                _responseData.value = dataState
-            }.launchIn(viewModelScope)
-        }
+        userRepository.editUserFlow(nickname).onEach { dataState ->
+            _responseData.value = dataState
+        }.launchIn(viewModelScope)
     }
 
 }

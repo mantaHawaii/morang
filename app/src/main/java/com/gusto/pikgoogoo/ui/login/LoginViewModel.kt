@@ -33,35 +33,27 @@ constructor(
 
 
     fun registerUser(nickname: String) {
-        viewModelScope.launch {
-            userRepository.registerUserFlow(nickname).onEach { dataState ->
-                _registerState.value = dataState
-            }.launchIn(viewModelScope)
-        }
+        userRepository.registerUserFlow(nickname).onEach { dataState ->
+            _registerState.value = dataState
+        }.launchIn(viewModelScope)
     }
 
     fun getMorangUserWithGoogleSignIn(context: Context) {
-        viewModelScope.launch {
-            userRepository.getMorangUserWithGoogleFlow(context).onEach { dataState ->
-                _userData.value = dataState
-            }.launchIn(viewModelScope)
-        }
+        userRepository.getMorangUserWithGoogleFlow(context).onEach { dataState ->
+            _userData.value = dataState
+        }.launchIn(viewModelScope)
     }
 
     fun getIdTokenWithKakaoSignIn(context: Context) {
-        viewModelScope.launch {
-            userRepository.getMorangUserWithKakaoFlow(context).onEach { dataState ->
-                _userData.value = dataState
-            }.launchIn(viewModelScope)
-        }
+        userRepository.getMorangUserWithKakaoFlow(context).onEach { dataState ->
+            _userData.value = dataState
+        }.launchIn(viewModelScope)
     }
 
     fun getIdTokenWithGP(uid: String) {
-        viewModelScope.launch {
-            userRepository.getMorangUserWithGPFlow(uid).onEach { dataState ->
-                _userData.value = dataState
-            }.launchIn(viewModelScope)
-        }
+        userRepository.getMorangUserWithGPFlow(uid).onEach { dataState ->
+            _userData.value = dataState
+        }.launchIn(viewModelScope)
     }
 
 }

@@ -30,18 +30,14 @@ constructor(
 
 
     fun fetchGradeList() {
-        viewModelScope.launch {
-            gradeRepository.getGradeFromLocalFlow().onEach { dataState ->
-                _gradeData.value = dataState
-            }.launchIn(viewModelScope)
-        }
+        gradeRepository.getGradeFromLocalFlow().onEach { dataState ->
+            _gradeData.value = dataState
+        }.launchIn(viewModelScope)
     }
 
     fun updateUserGrade(gradeIcon: Int) {
-        viewModelScope.launch {
-            gradeRepository.upgradeGradeIconFlow(gradeIcon).onEach { dataState ->
-                _gradeIconData.value = dataState
-            }.launchIn(viewModelScope)
-        }
+        gradeRepository.upgradeGradeIconFlow(gradeIcon).onEach { dataState ->
+            _gradeIconData.value = dataState
+        }.launchIn(viewModelScope)
     }
 }

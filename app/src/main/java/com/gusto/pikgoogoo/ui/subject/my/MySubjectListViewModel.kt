@@ -22,55 +22,31 @@ class MySubjectListViewModel
 @Inject
 constructor(
     private val subjectRepository: SubjectRepository,
-    private val gradeRepository: GradeRepository,
-    private val userRepository: UserRepository
+    private val gradeRepository: GradeRepository
 ) : ViewModel() {
 
     private val _subjectsData: MutableLiveData<DataState<List<Subject>>> = MutableLiveData()
-    private val _responseData: MutableLiveData<DataState<String>> = MutableLiveData()
     private val _gradeData: MutableLiveData<DataState<List<Grade>>> = MutableLiveData()
 
     val subjectsData: LiveData<DataState<List<Subject>>>
         get() = _subjectsData
-    val responseData: LiveData<DataState<String>>
-        get() = _responseData
     val gradeData: LiveData<DataState<List<Grade>>>
         get() = _gradeData
 
-    val subjects = mutableListOf<Subject>()
-    var moreFlag = true
     val params = MySubjectListParameter(0, 0)
 
-    fun getMySubjects(context: Context) {
-        viewModelScope.launch {
-            if (params.offset == 0) {
-                subjects.clear()
-            }
-            val uid = try {
-                userRepository.getUidFromShareRef(context)
-            } catch (e: Exception) {
-                _subjectsData.value = DataState.Error(e)
-                return@launch
-            }
-            val result = try {
-                subjectRepository.getMySubjects(uid, params.order, params.offset)
-            } catch (e: Exception) {
-                _subjectsData.value = DataState.Error(e)
-                return@launch
-            }
-            moreFlag = result.size > 0
-            subjects.addAll(result)
-            _subjectsData.value = DataState.Success(subjects)
-        }
+    fun fetchMySubjects(context: Context) {
+        subjectRepository.fetchMySubjectsFlow(context, params.order, params.offset)
+            .onEach { dataState ->
+                _subjectsData.value = dataState
+            }.launchIn(viewModelScope)
     }
 
     fun getGrade() {
-        viewModelScope.launch {
-            gradeRepository.getGradeFromLocalFlow()
-                .onEach { dataState ->
-                    _gradeData.value = dataState
-                }.launchIn(viewModelScope)
-        }
+        gradeRepository.getGradeFromLocalFlow()
+            .onEach { dataState ->
+                _gradeData.value = dataState
+            }.launchIn(viewModelScope)
     }
 
     data class MySubjectListParameter(

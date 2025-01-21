@@ -33,19 +33,15 @@ constructor(
     }
 
     fun fetchCategories() {
-        viewModelScope.launch {
-            subjectRepository.fetchCategoriesFlow().onEach { dataState ->
-                _categoriesData.value = dataState
-            }.launchIn(viewModelScope)
-        }
+        subjectRepository.fetchCategoriesFlow().onEach { dataState ->
+            _categoriesData.value = dataState
+        }.launchIn(viewModelScope)
     }
 
     fun insertSubject(title: String, categoryId: Int) {
-        viewModelScope.launch {
-            subjectRepository.insertSubjectFlow(title, categoryId).onEach { dataState ->
-                _responseData.value = dataState
-            }.launchIn(viewModelScope)
-        }
+        subjectRepository.insertSubjectFlow(title, categoryId).onEach { dataState ->
+            _responseData.value = dataState
+        }.launchIn(viewModelScope)
     }
     
 }

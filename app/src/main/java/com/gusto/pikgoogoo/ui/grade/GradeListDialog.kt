@@ -103,7 +103,7 @@ constructor(
 
                 }
                 is DataState.Success -> {
-                    parentViewModel.getMyUserData(requireActivity())
+                    parentViewModel.fetchCurrentUserInfo(requireActivity())
                     parentFragmentManager.popBackStackImmediate()
                     dismiss()
                 }

@@ -32,11 +32,9 @@ constructor(
         get() = _gradeDataState
 
     fun getDBVersionFromServer() {
-        viewModelScope.launch {
-            gradeRepository.getServerDBVersionFlow().onEach { dataState ->
-                _dbVersionData.value = dataState
-            }.launchIn(viewModelScope)
-        }
+        gradeRepository.getServerDBVersionFlow().onEach { dataState ->
+            _dbVersionData.value = dataState
+        }.launchIn(viewModelScope)
     }
 
     fun getDBVersionFromPref(activity: SplashActivity): Int {
@@ -52,11 +50,9 @@ constructor(
     }
 
     fun updateLocalGrade() {
-        viewModelScope.launch {
-            gradeRepository.updateLocalUserGradeFlow().onEach { dataState ->
-                _gradeDataState.value = dataState
-            }.launchIn(viewModelScope)
-        }
+        gradeRepository.updateLocalUserGradeFlow().onEach { dataState ->
+            _gradeDataState.value = dataState
+        }.launchIn(viewModelScope)
     }
 
     fun deleteCache(context: Context) {

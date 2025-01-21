@@ -12,6 +12,8 @@ import com.gusto.pikgoogoo.data.repository.ArticleRepository
 import com.gusto.pikgoogoo.data.repository.SubjectRepository
 import com.gusto.pikgoogoo.util.DataState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -52,44 +54,34 @@ constructor(
         )
 
     fun fetchArticles() {
-        viewModelScope.launch {
-            articleRepository.fetchArticlesFlow(params.subjectId, params.order, params.offset, params.searchWords)
-                .onEach { dataState ->
-                    _articlesData.value = dataState
-                }.launchIn(viewModelScope)
-        }
+        articleRepository.fetchArticlesFlow(params.subjectId, params.order, params.offset, params.searchWords)
+            .onEach { dataState ->
+                _articlesData.value = dataState
+            }.launchIn(viewModelScope)
     }
 
     fun fetchAds(context: Context, numberOfAds: Int) {
-        viewModelScope.launch {
-            adRepository.fetchAds(context, numberOfAds).onEach { dataState ->
-                _adsData.value = dataState
-            }.launchIn(viewModelScope)
-        }
+        adRepository.fetchAds(context, numberOfAds).onEach { dataState ->
+            _adsData.value = dataState
+        }.launchIn(viewModelScope)
     }
 
     fun voteArticleSubmit(articleId: Int) {
-        viewModelScope.launch {
-            articleRepository.voteArticleFlow(articleId, params.order).onEach { dataState ->
-                _articlesData.value = dataState
-            }.launchIn(viewModelScope)
-        }
+        articleRepository.voteArticleFlow(articleId, params.order).onEach { dataState ->
+            _articlesData.value = dataState
+        }.launchIn(viewModelScope)
     }
 
     fun fetchBookmarkStatus(context: Context) {
-        viewModelScope.launch {
-            subjectRepository.fetchBookmarkStatusFlow(context, params.subjectId).onEach { dataState ->
-                _bookmarkData.value = dataState
-            }.launchIn(viewModelScope)
-        }
+        subjectRepository.fetchBookmarkStatusFlow(context, params.subjectId).onEach { dataState ->
+            _bookmarkData.value = dataState
+        }.launchIn(viewModelScope)
     }
 
     fun addToBookmarks() {
-        viewModelScope.launch {
-            subjectRepository.bookmarkSubjectFlow(params.subjectId).onEach { dataState ->
-                _bookmarkRes.value = dataState
-            }.launchIn(viewModelScope)
-        }
+        subjectRepository.bookmarkSubjectFlow(params.subjectId).onEach { dataState ->
+            _bookmarkRes.value = dataState
+        }.launchIn(viewModelScope)
     }
 
     data class ArticleParameter(

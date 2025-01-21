@@ -26,11 +26,9 @@ constructor(
         get() = _categoriesData
 
     fun fetchCategories() {
-        viewModelScope.launch {
-            subjectRepository.fetchCategoriesFlow().onEach { dataState ->
-                _categoriesData.value = dataState
-            }.launchIn(viewModelScope)
-        }
+        subjectRepository.fetchCategoriesFlow().onEach { dataState ->
+            _categoriesData.value = dataState
+        }.launchIn(viewModelScope)
     }
 
 }

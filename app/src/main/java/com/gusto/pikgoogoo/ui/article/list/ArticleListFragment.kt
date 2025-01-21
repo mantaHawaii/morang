@@ -52,15 +52,13 @@ constructor(
 
     private val mNativeAds = mutableListOf<NativeAd>()
 
-    private var isFirst: Boolean = true
-
     private var isSubscribedObservers = false
 
     private var lastInsertedAdIndex = 0
 
     private var moreFlag = true
 
-    private var lastSize = 0
+    private var lastDataSize = 0
 
     private var scrollTopFlag = false
 
@@ -175,17 +173,6 @@ constructor(
 
         })
 
-        if (isFirst) {
-            val tab = binding.tlTerm.getTabAt(0)
-            if (tab != null) {
-                tab.select()
-            } else {
-                scrollTopFlag = true
-                viewModel.fetchArticles()
-            }
-            isFirst = false
-        }
-
         binding.tvTitle.setText(title)
 
         binding.etSearchwords.setOnEditorActionListener { v, actionId, event ->
@@ -202,8 +189,6 @@ constructor(
         binding.bBack.setOnClickListener { backPressed() }
 
         binding.srlArticles.setOnRefreshListener { refreshArticles() }
-
-        viewModel.fetchBookmarkStatus(requireActivity())
 
         binding.ibBookmark.setOnClickListener {
             if (loginManager.isLoggedIn()) {
@@ -239,13 +224,78 @@ constructor(
 
         }
 
+        /*val composeView = ComposeView(requireActivity())
+        composeView.setContent {
+            CollaspingArticleLayout(viewModel, title, subjectId, object : ClickListener {
+                override fun onBackClick() {
+                    backPressed()
+                }
+
+                override fun onBookmarkClick(subjectId: Int) {
+                    if (loginManager.isLoggedIn()) {
+                        viewModel.addToBookmarks()
+                    } else {
+                        alertLogin()
+                    }
+                }
+
+                override fun onShareClick(subjectId: Int) {
+                    Firebase.dynamicLinks.shortLinkAsync {
+                        val url = URLEncoder.encode("https://morang.page.link?subjectId="+subjectId+"&title="+title, "UTF-8")
+                        longLink = Uri.parse("https://morang.page.link/?link="+url
+                                +"&apn=com.gusto.pikgoogoo"
+                                +"&st="+URLEncoder.encode(title, "UTF-8")
+                                +"&sd="+URLEncoder.encode("모랭 - 모든 랭킹", "UTF-8")
+                        )
+                    }.addOnSuccessListener { (shortLink, flowchartLink) ->
+
+                        val sendIntent: Intent = Intent().apply {
+                            action = Intent.ACTION_SEND
+                            putExtra(Intent.EXTRA_TEXT, shortLink.toString())
+                            putExtra(Intent.EXTRA_TITLE, title+" - 지금 바로 랭킹을 확인하세요")
+                            type = "text/plain"
+                        }
+
+                        val shareIntent = Intent.createChooser(sendIntent, null)
+                        startActivity(shareIntent)
+
+                    }.addOnFailureListener { e ->
+                        showMessage(e.localizedMessage?:"에러")
+                    }
+                }
+
+                override fun onShowCommentsClick(subjectId: Int) {
+                    firebaseAnalytics.logEvent("view_comments_from_all") {
+                        param(FirebaseAnalytics.Param.CONTENT_TYPE, "comment")
+                        param(FirebaseAnalytics.Param.METHOD, "all")
+                    }
+                    openChildFragment(CommentListFragment(subjectId, 0), FragmentTags.COMMENT_LIST_TAG)
+                }
+
+                override fun onTabClick(subjectId: Int, orderType: ArticleOrder) {
+                    clearSearch()
+                    Log.d("MR_ALF", "오더타입:"+orderType.value.toString())
+                    scrollTopFlag = true
+                    viewModel.params.order = orderType.value
+                    viewModel.params.offset = 0
+                    viewModel.params.searchWords = ""
+                    viewModel.fetchArticles()
+                }
+            })
+        }*/
+
         return v
 
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        if (!isSubscribedObservers) { subscribeObservers() }
+        if (!isSubscribedObservers) {
+            subscribeObservers()
+            viewModel.fetchBookmarkStatus(requireActivity())
+            val tab = binding.tlTerm.getTabAt(0)
+            tab?.select()
+        }
     }
 
     fun openChildFragment(fragment: Fragment, tag: String) {
@@ -340,10 +390,10 @@ constructor(
                 }
                 is DataState.Success -> {
                     loadEnd()
-                    val articles = dataState.result
-                    moreFlag = articles.size != lastSize
-                    articleAdapter.setList(articles)
-                    lastSize = articleAdapter.itemCount
+                    val data = dataState.result
+                    moreFlag = data.size != lastDataSize || viewModel.params.offset == 0
+                    articleAdapter.setList(data)
+                    lastDataSize = data.size
                     lastInsertedAdIndex = 0
                     insertAds()
                     binding.srlArticles.isRefreshing = false
@@ -417,9 +467,7 @@ constructor(
     }
 
     private fun insertAds() {
-        for (ad in mNativeAds) {
-            insertAd(ad)
-        }
+        mNativeAds.forEach { insertAd(it) }
     }
 
     override fun onDestroyView() {
@@ -434,6 +482,14 @@ constructor(
             ad.destroy()
         }
         super.onDestroy()
+    }
+
+    interface ClickListener {
+        fun onBackClick()
+        fun onBookmarkClick(subjectId: Int)
+        fun onShareClick(subjectId: Int)
+        fun onShowCommentsClick(subjectId: Int)
+        fun onTabClick(subjectId: Int, orderType: ArticleOrder)
     }
 
 }

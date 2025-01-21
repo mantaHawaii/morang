@@ -1,9 +1,11 @@
 package com.gusto.pikgoogoo.data.repository
 
+import android.content.Context
 import com.gusto.pikgoogoo.api.WebService
 import com.gusto.pikgoogoo.data.Comment
 import com.gusto.pikgoogoo.data.CommentMapper
 import com.gusto.pikgoogoo.datasource.FirebaseDataSource
+import com.gusto.pikgoogoo.datasource.PreferenceDataSource
 import com.gusto.pikgoogoo.util.DataState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flow
@@ -16,7 +18,8 @@ class CommentRepository
 constructor(
     private val webService: WebService,
     private val commentMapper: CommentMapper,
-    private val firebaseDataSource: FirebaseDataSource
+    private val firebaseDataSource: FirebaseDataSource,
+    private val preferenceDataSource: PreferenceDataSource
 ) : ParentRepository() {
 
     private val comments = mutableListOf<Comment>()
@@ -40,11 +43,11 @@ constructor(
     fun fetchCommentsFlow(subjectId: Int, articleId: Int, order: Int, offset: Int) = flow {
         try {
             emit(DataState.Loading("코멘트 가져오는 중"))
-            if (offset == 0) {
-                comments.clear()
-            }
             val res = webService.getComments(subjectId, articleId, order, offset)
             if (isStatusCodeSuccess(res)) {
+                if (offset == 0) {
+                    comments.clear()
+                }
                 val commentList = commentMapper.mapFromEntityList(res.comments)
                 comments.addAll(commentList)
                 emit(DataState.Success(comments))
@@ -96,19 +99,6 @@ constructor(
         }
     }.flowOn(Dispatchers.IO)
 
-    //삭제 완료
-    @Deprecated("2025-01-15 이후로 사용되지 않는 함수입니다")
-    suspend fun deleteComment(token: String, commentId: Int): String {
-        val res = withContext(Dispatchers.IO) {
-            webService.deleteComment(token, commentId)
-        }
-        if (res.status.code == "111") {
-            return res.status.message
-        } else {
-            throw Exception(res.status.message)
-        }
-    }
-
     fun removeCommentFlow(commentId: Int) = flow {
         try {
             emit(DataState.Loading("코멘트 삭제 요청 중"))
@@ -127,7 +117,7 @@ constructor(
         } catch (e: Exception) {
             emit(DataState.Error(e))
         }
-    }
+    }.flowOn(Dispatchers.IO)
 
     suspend fun getUserComments(userId: Int, order: Int, offset: Int): List<Comment> {
         val res = withContext(Dispatchers.IO) {
@@ -139,5 +129,25 @@ constructor(
             throw Exception(res.status.message)
         }
     }
+
+    fun fetchMyComments(context: Context, order: Int, offset: Int) = flow {
+        try {
+            emit(DataState.Loading("코멘트 가져오는 중"))
+            val uid = preferenceDataSource.getUid(context)
+            val res = webService.getUserComments(uid, order, offset)
+            if (isStatusCodeSuccess(res)) {
+                if (offset == 0) {
+                    comments.clear()
+                }
+                val data = commentMapper.mapFromEntityList(res.comments)
+                comments.addAll(data)
+                emit(DataState.Success(comments))
+            } else {
+                emit(DataState.Error(formatErrorFromStatus(res)))
+            }
+        } catch (e: Exception) {
+            emit(DataState.Error(e))
+        }
+    }.flowOn(Dispatchers.IO)
 
 }

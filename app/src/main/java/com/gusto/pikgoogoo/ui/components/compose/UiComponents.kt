@@ -1,7 +1,10 @@
 package com.gusto.pikgoogoo.ui.components.compose
 
+import android.util.Log
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.Image
+import androidx.compose.animation.core.animateIntOffsetAsState
+import androidx.compose.animation.core.animateOffsetAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,7 +24,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Button
@@ -37,6 +41,8 @@ import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,6 +51,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalContext
@@ -57,29 +64,57 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import coil3.compose.AsyncImage
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.gusto.pikgoogoo.R
 import com.gusto.pikgoogoo.data.Article
+import com.gusto.pikgoogoo.data.ArticleOrder
+import com.gusto.pikgoogoo.ui.article.list.ArticleListFragment
+import com.gusto.pikgoogoo.ui.article.list.ArticleListViewModel
+import com.gusto.pikgoogoo.util.DataState
 
-@Preview(showBackground = true)
 @Composable
-fun CollaspingArticleLayout() {
-    val initialHeight = 350f
+fun CollaspingArticleLayout(viewModel: ArticleListViewModel, title: String, subjectId: Int, clickListener: ArticleListFragment.ClickListener) {
+    val initialHeight = 330f
     val scalingFactor = 1f
-    val scrollState = rememberScrollState()
-    val scrollPosition = scrollState.value
-    val headerHeight = animateFloatAsState(
-        targetValue = (initialHeight-scrollPosition*scalingFactor).coerceIn(0f, initialHeight)
-    ).value
+    val scrollState = rememberLazyListState()
+    val dragAmountYState = remember { mutableStateOf(0f) }
+    val headerHeightState = animateFloatAsState(
+        targetValue = if (initialHeight+dragAmountYState.value*scalingFactor < 0f) 0f
+        else if (initialHeight+dragAmountYState.value*scalingFactor > initialHeight) initialHeight
+        else initialHeight+dragAmountYState.value*scalingFactor
+    )
+    val nestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                val b = if (headerHeightState.value >= 0f && headerHeightState.value < initialHeight && available.y > 0) 1 else 0
+                val csf = if (scrollState.canScrollForward) 1 else 0
+                val csb = if (scrollState.canScrollBackward) 1 else 0
+                dragAmountYState.value += available.y*((csf and csb) or b).toFloat()
+
+                /*if (dragAmountYState.value in -initialHeight/scalingFactor..0f) {
+                    dragAmountYState.value += available.y
+                    dragAmountYState.apply {
+                        value = value.coerceIn(-initialHeight/scalingFactor, 0f)
+                    }
+                }*/
+                return Offset.Zero
+            }
+        }
+    }
+    //val dataState = viewModel.articlesData.collectAsState()
     Surface(//헤더 부분
         modifier = Modifier
-            .height(headerHeight.dp)
             .fillMaxWidth()
             .testTag("layoutHeader"),
         color = colorResource(R.color.background_grey)
@@ -98,7 +133,7 @@ fun CollaspingArticleLayout() {
                         .align(Alignment.CenterVertically)
                         .padding(11.dp)
                         .clickable {
-                            TODO()
+                            clickListener.onBackClick()
                         }
                 )//뒤로가기버튼
                 Spacer(modifier = Modifier.weight(1f))
@@ -110,7 +145,7 @@ fun CollaspingArticleLayout() {
                         .align(Alignment.CenterVertically)
                         .padding(11.dp)
                         .clickable {
-                            TODO()
+                            clickListener.onBookmarkClick(subjectId)
                         }
                     )//즐겨찾기 버튼
                 Icon(
@@ -121,11 +156,11 @@ fun CollaspingArticleLayout() {
                         .align(Alignment.CenterVertically)
                         .padding(11.dp)
                         .clickable {
-                            TODO()
+                            clickListener.onShareClick(subjectId)
                         }
                     )//공유 버튼
             }
-            Box {
+            Box(modifier = Modifier.height(headerHeightState.value.dp)) {
                 Column(
                     modifier = Modifier
                         .fillMaxHeight(),
@@ -136,15 +171,15 @@ fun CollaspingArticleLayout() {
                     val titleFontSize = 20.sp
                     val searchFontSize = 15.sp
                     val tabDataList = listOf(
-                        TabData("전체") {},
-                        TabData("일") {},
-                        TabData("주") {},
-                        TabData("월") {},
-                        TabData("신규") {},
+                        TabData("전체") { clickListener.onTabClick(subjectId, ArticleOrder.ALL) },
+                        TabData("일") { clickListener.onTabClick(subjectId, ArticleOrder.DAY) },
+                        TabData("주") { clickListener.onTabClick(subjectId, ArticleOrder.WEEK) },
+                        TabData("월") { clickListener.onTabClick(subjectId, ArticleOrder.MONTH) },
+                        TabData("신규") { clickListener.onTabClick(subjectId, ArticleOrder.NEW) },
                     )
 
                     Text(
-                        text = "제목은 어쩌고 저쩌고의 어쩌고 저쩌고한 저쩌고 스러운 저쩌고의 이야기입니다 러러럴",
+                        text = title,
                         modifier = Modifier
                             .align(Alignment.CenterHorizontally)
                             .padding(start = 32.dp, end = 32.dp),
@@ -160,7 +195,12 @@ fun CollaspingArticleLayout() {
                     MyTabRow(tabDataList)
                 }
                 Row(
-                    modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp),
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(8.dp)
+                        .clickable {
+                            clickListener.onShowCommentsClick(subjectId)
+                        },
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
@@ -173,23 +213,24 @@ fun CollaspingArticleLayout() {
                     Text(text = "댓글보기", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = colorResource(R.color.text_dark_grey))
                 }
             }
+            /*if (dataState.value is DataState.Success) {
+                val items = (dataState.value as DataState.Success<List<Article>>).result
+                LazyColumn(
+                    modifier = Modifier.nestedScroll(nestedScrollConnection),
+                    state = scrollState
+                ) {
+                    items(items) { item: Article ->
+                        ArticleItemRow(item)
+                    }
+                }
+            }*/
 
-            
         }
     }
 }
 
 @Composable
-fun ItemList() {
-    LazyColumn {
-
-    }
-}
-
-
-@Preview
-@Composable
-fun ArticleItemRow() {
+fun ArticleItemRow(article: Article) {
     val buttonHeight = 32.dp
     // 전체 레이아웃을 위한 Column 사용
 
@@ -199,7 +240,7 @@ fun ArticleItemRow() {
             .padding(start = 24.dp, end = 32.dp, top = 16.dp, bottom = 16.dp)
     ) {
         Text(
-            text = "1",
+            text = article.rank.toString(),
             modifier = Modifier
                 .align(Alignment.CenterVertically)
                 .defaultMinSize(minWidth = 32.dp)
@@ -215,14 +256,19 @@ fun ArticleItemRow() {
                     .padding(top = 24.dp, bottom = 25.dp), // 아래쪽 여백 설정
                 verticalAlignment = Alignment.CenterVertically // 세로로 가운데 정렬
             ) {
-
-                Image(
-                    painter = painterResource(id = R.drawable.grade2), // 이미지 리소스 설정
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(75.dp)
-                        .clip(RoundedCornerShape(2.dp))
-                )
+                if (article.imageUri != null) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(article.imageUri)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = article.content,
+                        modifier = Modifier
+                            .size(75.dp)
+                            .clip(RoundedCornerShape(2.dp)),
+                        contentScale = if (article.cropImage == 1) ContentScale.Crop else ContentScale.Inside
+                    )
+                }
                 Column(
                     modifier = Modifier
                         .padding(start = 24.dp)
@@ -230,7 +276,7 @@ fun ArticleItemRow() {
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "여기에 텍스트가 들어갑니다.",
+                        text = article.content,
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1f)
@@ -239,7 +285,7 @@ fun ArticleItemRow() {
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         LinearProgressIndicator(
-                            progress = {0.75f},
+                            progress = {article.voteRate/100f},
                             modifier = Modifier
                                 .height(15.dp)
                                 .weight(1f)
@@ -247,7 +293,7 @@ fun ArticleItemRow() {
                             color = colorResource(id = R.color.innuendo),
                             trackColor = colorResource(id = R.color.gossamer_pink))
                         Text(
-                            text = "75",
+                            text = article.voteRate.toInt().toString(),
                             color = colorResource(id = R.color.innuendo),
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier
@@ -277,7 +323,7 @@ fun ArticleItemRow() {
                 ) {
                     ArticleButton(
                         textLeft = "댓글",
-                        textRight = "0",
+                        textRight = article.commentCount.toString(),
                         backgroundColor = colorResource(id = R.color.spun_sugar),
                         contentColor = colorResource(id = R.color.skydiver)
                     )
@@ -288,7 +334,7 @@ fun ArticleItemRow() {
                 ) {
                     ArticleButton(
                         textLeft = "투표",
-                        textRight = "0",
+                        textRight = article.voteCount.toString(),
                         backgroundColor = colorResource(id = R.color.gossamer_pink),
                         contentColor = colorResource(id = R.color.innuendo)
                     )
@@ -386,7 +432,8 @@ fun SearchField(modifier: Modifier = Modifier, searchFontSize: TextUnit) {
     }
 }
 
-data class TabData(val text: String, val onClick: (Int) -> Unit)
+@Stable
+data class TabData(val text: String, val onClick: () -> Unit)
 
 @Composable
 fun MyTabLayout(tabDataList: List<TabData>) {
@@ -425,21 +472,29 @@ fun MyTabLayout(tabDataList: List<TabData>) {
         }
 
         // 선택된 탭에 대한 onClick함수 실행
-        tabDataList[selectedTabIndex.value].onClick(selectedTabIndex.value)
+        tabDataList[selectedTabIndex.value].onClick()
     }
 }
 
 @Composable
 fun MyTabRow(tabDataList: List<TabData>) {
 
-    val selectedTabIndex = remember { mutableStateOf(0) }
-    var position: Offset? = Offset(290f, 10f)
-    var size = DpSize(32.dp, 32.dp)
+    val sizeState = remember { mutableStateOf(DpSize(0.dp, 0.dp)) }
     val density = LocalDensity.current
+    val selectedIndexState = remember { mutableStateOf(0) }
+    val position = remember { mutableStateOf(Offset(0f, 0f)) }
+    val animatedState = animateIntOffsetAsState(
+        targetValue = position.value.let { offset ->
+            IntOffset(offset.x.let { it-sizeState.value.width.value/2f }.toInt(), offset.y.let { it-sizeState.value.height.value/2f }.toInt())
+        }
+    )
+    val widthState = animateDpAsState(
+        targetValue = sizeState.value.width
+    )
 
     Box {
         Row(
-            modifier = Modifier.fillMaxWidth(0.8f).zIndex(2f),
+            modifier = Modifier.zIndex(2f),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -447,30 +502,34 @@ fun MyTabRow(tabDataList: List<TabData>) {
                 Text(
                     text = data.text,
                     fontSize = 15.sp,
-                    color = if (index==selectedTabIndex.value) colorResource(R.color.main) else colorResource(R.color.text_grey) ,
+                    color = if (index==selectedIndexState.value) colorResource(R.color.main) else colorResource(R.color.text_grey) ,
                     modifier = Modifier
-                        .padding(8.dp)
+                        .padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 4.dp)
                         .onGloballyPositioned { layoutCoordinates ->
-                            if (index==selectedTabIndex.value) {
-                                position = layoutCoordinates.positionInParent()
+                            if (index==selectedIndexState.value) {
+                                position.value = layoutCoordinates.positionInParent()
+                                Log.d("MR_ALF", "위치:"+position.value.toString())
+                                val sizeInPx = layoutCoordinates.size
+                                val width = with(density) { sizeInPx.width.let { it*1.4f }.toDp() }
+                                val height = with(density) { sizeInPx.height.let { it*1.5f }.toDp() }
+                                sizeState.value = DpSize(width, height)
                             }
-                            val sizeInPx = layoutCoordinates.size
-                            val width = with(density) { sizeInPx.width.toDp() }
-                            val height = with(density) { sizeInPx.height.toDp() }
-                            size = DpSize(width, height)
-                        })
+                        }
+                        .clickable {
+                            data.onClick()
+                            selectedIndexState.value = index
+                        }
+                )
             }
         }
         Surface(
-            color = colorResource(R.color.main),
-            modifier = Modifier.size(size.width, size.height)
+            color = colorResource(R.color.spun_sugar),
+            modifier = Modifier.size(widthState.value, sizeState.value.height)
                 .offset {
-                    position?.let {
-                        IntOffset(it.x.toInt(), it.y.toInt())
-                    }?: IntOffset(0, 0)
+                    animatedState.value
                 }
                 .zIndex(1f),
-            shape = RoundedCornerShape(5.dp)
+            shape = RoundedCornerShape(3.dp)
         ) {
 
         }

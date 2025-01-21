@@ -142,7 +142,7 @@ class SubjectListFragment : LoadingIndicatorFragment() {
             showChildFragment(SearchSubejctFragment(), FragmentTags.SEARCH_SUBJECT_TAG)
         }
 
-        viewModel.getGrade()
+        viewModel.fetchGrade()
 
         binding.llCategories.setOnClickListener {
             CategoryListDialog().show(childFragmentManager, FragmentTags.CATEGORY_LIST_TAG)
@@ -192,6 +192,7 @@ class SubjectListFragment : LoadingIndicatorFragment() {
                     adapter.submitList(data)
                     adapter.notifyDataSetChanged()
                     binding.srlSubjects.isRefreshing = false
+                    lastDataSize = data.size
                 }
                 is DataState.Error -> {
                     loadEnd()

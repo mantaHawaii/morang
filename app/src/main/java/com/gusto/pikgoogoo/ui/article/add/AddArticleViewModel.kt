@@ -34,24 +34,20 @@ constructor(
     val params = AddArticleReqParam("", 0, "", 0)
 
     fun submitArticleInsert() {
-        viewModelScope.launch {
-            articleRepository.insertArticleFlow(
-                params.content,
-                params.subjectId,
-                params.imageUrl.replace(".jpg", ""),
-                params.cropImage)
-                .onEach { dataState ->
-                    _insertState.value = dataState
-                }.launchIn(viewModelScope)
-        }
+        articleRepository.insertArticleFlow(
+            params.content,
+            params.subjectId,
+            params.imageUrl.replace(".jpg", ""),
+            params.cropImage)
+            .onEach { dataState ->
+                _insertState.value = dataState
+            }.launchIn(viewModelScope)
     }
 
     fun submitImageStore(uri: Uri, context: Context) {
-        viewModelScope.launch {
-            firebaseImageRepository.storeImageFlow(uri, context).onEach { dataState ->
-                _storageState.value = dataState
-            }.launchIn(viewModelScope)
-        }
+        firebaseImageRepository.storeImageFlow(uri, context).onEach { dataState ->
+            _storageState.value = dataState
+        }.launchIn(viewModelScope)
     }
 
     data class AddArticleReqParam(

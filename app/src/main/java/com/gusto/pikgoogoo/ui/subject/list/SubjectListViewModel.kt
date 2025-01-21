@@ -23,81 +23,36 @@ constructor(
 ) : ViewModel() {
 
     private val _subjectsData: MutableLiveData<DataState<List<Subject>>> = MutableLiveData()
-    private val _responseData: MutableLiveData<DataState<String>> = MutableLiveData()
     private val _gradeData: MutableLiveData<DataState<List<Grade>>> = MutableLiveData()
 
     val subjectsData: LiveData<DataState<List<Subject>>>
         get() = _subjectsData
-    val responseData: LiveData<DataState<String>>
-        get() = _responseData
     val gradeData: LiveData<DataState<List<Grade>>>
         get() = _gradeData
 
-    val subjects = mutableListOf<Subject>()
     val params = SubjectParameter(
         categoryId = 0,
         offset = 0,
         order = 0,
         searchWords = ""
     )
-    var moreFlag = true
-
-    private fun getSubjects() {
-        viewModelScope.launch {
-            if (params.offset == 0) {
-                subjects.clear()
-            }
-            _subjectsData.value = DataState.Loading("리스트 가져오는 중")
-            val result = try {
-                subjectRepository.getSubjects(params.categoryId, params.order, params.offset)
-            } catch (e: Exception) {
-                _subjectsData.value = DataState.Error(e)
-                return@launch
-            }
-            moreFlag = result.size > 0
-            subjects.addAll(result)
-            _subjectsData.value = DataState.Success(subjects)
-        }
-    }
-
-    private fun getSubjectsBySearchWords() {
-        viewModelScope.launch {
-            if (params.offset == 0) {
-                subjects.clear()
-            }
-            _subjectsData.value = DataState.Loading("리스트 가져오는 중")
-            val result = try {
-                subjectRepository.getSubjectsBySearchWords(params.categoryId, params.order, params.offset, params.searchWords)
-            } catch (e: Exception) {
-                _subjectsData.value = DataState.Error(e)
-                return@launch
-            }
-            moreFlag = result.size > 0
-            subjects.addAll(result)
-            _subjectsData.value = DataState.Success(subjects)
-        }
-    }
 
     private fun fetchSubjectDefault() {
-        viewModelScope.launch {
-            subjectRepository.fetchSubjectsFlow(params.categoryId, params.order, params.offset)
-                .onEach { dataState ->
-                    _subjectsData.value = dataState
-                }.launchIn(viewModelScope)
-        }
+        subjectRepository.fetchSubjectsFlow(params.categoryId, params.order, params.offset)
+            .onEach { dataState ->
+                _subjectsData.value = dataState
+            }.launchIn(viewModelScope)
     }
 
     private fun fetchSubjectBySearchWords() {
-        viewModelScope.launch {
-            subjectRepository.fetchSubjectsBySearchWordsFlow(
-                params.categoryId,
-                params.order,
-                params.offset,
-                params.searchWords
-            ).onEach { dataState ->
-                _subjectsData.value = dataState
-            }.launchIn(viewModelScope)
-        }
+        subjectRepository.fetchSubjectsBySearchWordsFlow(
+            params.categoryId,
+            params.order,
+            params.offset,
+            params.searchWords
+        ).onEach { dataState ->
+            _subjectsData.value = dataState
+        }.launchIn(viewModelScope)
     }
 
     fun fetchSubjects() {
@@ -108,17 +63,10 @@ constructor(
         }
     }
 
-    fun getGrade() {
-        viewModelScope.launch {
-            _gradeData.value = DataState.Loading("등급 정보 가져오는 중")
-            val result = try {
-                gradeRepository.getGradeFromLocal()
-            } catch (e: Exception) {
-                _gradeData.value = DataState.Error(e)
-                return@launch
-            }
-            _gradeData.value = DataState.Success(result)
-        }
+    fun fetchGrade() {
+        gradeRepository.getGradeFromLocalFlow().onEach { dataState ->
+            _gradeData.value = dataState
+        }.launchIn(viewModelScope)
     }
 
     data class SubjectParameter(

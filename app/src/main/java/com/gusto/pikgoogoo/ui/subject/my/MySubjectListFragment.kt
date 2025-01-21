@@ -22,6 +22,9 @@ class MySubjectListFragment : LoadingIndicatorFragment() {
     private lateinit var binding: FragmentMySubjectsBinding
     private val viewModel: MySubjectListViewModel by viewModels()
 
+    private var moreFlag = true
+    private var lastDataSize = 0
+
     private lateinit var adapter: SubjectAdapter
 
     override fun onCreateView(
@@ -45,9 +48,9 @@ class MySubjectListFragment : LoadingIndicatorFragment() {
         binding.rvMySubjects.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
-                if (dy > 0 && !recyclerView.canScrollVertically(1) && !isLoading && viewModel.moreFlag) {
+                if (dy > 0 && !recyclerView.canScrollVertically(1) && !isLoading && moreFlag) {
                     viewModel.params.offset += 1
-                    viewModel.getMySubjects(requireActivity())
+                    fetchMySubjects()
                 }
             }
         })
@@ -72,7 +75,10 @@ class MySubjectListFragment : LoadingIndicatorFragment() {
                 }
                 is DataState.Success -> {
                     loadEnd()
-                    adapter.submitList(dataState.result)
+                    val data = dataState.result
+                    moreFlag = data.size != lastDataSize || viewModel.params.offset == 0
+                    adapter.submitList(data)
+                    lastDataSize = data.size
                 }
                 is DataState.Error -> {
                     loadEnd()
@@ -90,7 +96,7 @@ class MySubjectListFragment : LoadingIndicatorFragment() {
                     adapter.setGradeList(dataState.result)
                     viewModel.params.offset = 0
                     viewModel.params.order = 0
-                    viewModel.getMySubjects(requireActivity())
+                    viewModel.fetchMySubjects(requireActivity())
                 }
                 is DataState.Error -> {
                     loadEnd()
@@ -98,5 +104,7 @@ class MySubjectListFragment : LoadingIndicatorFragment() {
             }
         })
     }
+
+    private fun fetchMySubjects() = viewModel.fetchMySubjects(requireActivity())
 
 }

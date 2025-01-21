@@ -34,19 +34,15 @@ constructor(
 
 
     fun fetchVoteHistory(articleId: Int, startDate: String, endDate: String) {
-        viewModelScope.launch {
-            articleRepository.getVoteHistoryFlow(articleId, startDate, endDate).onEach { dataState ->
-                _voteHistoryData.value = dataState
-            }.launchIn(viewModelScope)
-        }
+        articleRepository.getVoteHistoryFlow(articleId, startDate, endDate).onEach { dataState ->
+            _voteHistoryData.value = dataState
+        }.launchIn(viewModelScope)
     }
 
     fun fetchArticleCreatedDate(articleId: Int) {
-        viewModelScope.launch {
-            articleRepository.getArticleCreatedDateFlow(articleId).onEach { dataState ->
-                _createdDate.value = dataState
-            }.launchIn(viewModelScope)
-        }
+        articleRepository.getArticleCreatedDateFlow(articleId).onEach { dataState ->
+            _createdDate.value = dataState
+        }.launchIn(viewModelScope)
     }
 
     fun setTerm(startDate: String, endDate: String) {

@@ -41,20 +41,16 @@ constructor(
     val params = BookmarkedSubjectListParameter(0, 0)
 
     fun fetchBookmarkedSubjects(context: Context) {
-        viewModelScope.launch {
-            subjectRepository.fetchBookmarkedSubjectsFlow(context, params.order, params.offset)
-                .onEach { dataState ->
-                    _subjectsData.value = dataState
-                }.launchIn(viewModelScope)
-        }
+        subjectRepository.fetchBookmarkedSubjectsFlow(context, params.order, params.offset)
+            .onEach { dataState ->
+                _subjectsData.value = dataState
+            }.launchIn(viewModelScope)
     }
 
     fun fetchGrade() {
-        viewModelScope.launch {
-            gradeRepository.getGradeFromLocalFlow().onEach { dataState ->
-                _gradeData.value = dataState
-            }.launchIn(viewModelScope)
-        }
+        gradeRepository.getGradeFromLocalFlow().onEach { dataState ->
+            _gradeData.value = dataState
+        }.launchIn(viewModelScope)
     }
 
     data class BookmarkedSubjectListParameter(

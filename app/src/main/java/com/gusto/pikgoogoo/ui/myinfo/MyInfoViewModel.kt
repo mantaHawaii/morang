@@ -35,49 +35,22 @@ constructor(
     val deleteState: LiveData<DataState<String>>
         get() = _deleteState
 
-    @Deprecated("2025-01-15 일자로 폐기된 함수")
-    fun getMyUserData(context: Context){
-        viewModelScope.launch {
-
-            val uid = try {
-                userRepository.getUidFromShareRef(context)
-            } catch (e: Exception) {
-                _userData.value = DataState.Error(e)
-                return@launch
-            }
-
-            val user = try {
-                userRepository.getUserById(uid)
-            } catch (e: Exception) {
-                _userData.value = DataState.Error(e)
-                return@launch
-            }
-            _userData.value = DataState.Success(user)
-        }
-    }
-
     fun fetchCurrentUserInfo(context: Context) {
-        viewModelScope.launch {
-            userRepository.getCurrentMorangUserFlow(context).onEach { dataState ->
-                _userData.value = dataState
-            }.launchIn(viewModelScope)
-        }
+        userRepository.getCurrentMorangUserFlow(context).onEach { dataState ->
+            _userData.value = dataState
+        }.launchIn(viewModelScope)
     }
 
     fun fetchGradeList() {
-        viewModelScope.launch {
-            gradeRepository.getGradeFromLocalFlow().onEach { dataState ->
-                _gradeData.value = dataState
-            }.launchIn(viewModelScope)
-        }
+        gradeRepository.getGradeFromLocalFlow().onEach { dataState ->
+            _gradeData.value = dataState
+        }.launchIn(viewModelScope)
     }
 
     fun deleteUser() {
-        viewModelScope.launch {
-            userRepository.deleteUserFlow().onEach { dataState ->
-                _deleteState.value = dataState
-            }.launchIn(viewModelScope)
-        }
+        userRepository.deleteUserFlow().onEach { dataState ->
+            _deleteState.value = dataState
+        }.launchIn(viewModelScope)
     }
 
 }

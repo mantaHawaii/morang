@@ -83,7 +83,7 @@ class BookmarkedSubjectListFragment : LoadingIndicatorFragment() {
                 is DataState.Success -> {
                     loadEnd()
                     val data = dataState.result
-                    moreFlag = data.size != lastDataSize
+                    moreFlag = data.size != lastDataSize || viewModel.params.offset == 0
                     adapter.submitList(data)
                     lastDataSize = data.size
                 }

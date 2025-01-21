@@ -40,52 +40,40 @@ constructor(
     val params = CommentListParam(0, 0, 0, 0)
 
     fun fetchComments() {
-        viewModelScope.launch {
-            commentRepository.fetchCommentsFlow(params.subjectId, params.articleId, params.order, params.offset)
-                .onEach { dataState ->
-                    _commentsData.value = dataState
-                }.launchIn(viewModelScope)
-        }
+        commentRepository.fetchCommentsFlow(params.subjectId, params.articleId, params.order, params.offset)
+            .onEach { dataState ->
+                _commentsData.value = dataState
+            }.launchIn(viewModelScope)
     }
 
     fun postCommentToArticle(articleId: Int, comment: String) {
-        viewModelScope.launch {
-            commentRepository.postCommentToArticleFlow(articleId, params.subjectId, comment)
-                .onEach { dataState ->
-                    _commentOnRes.value = dataState
-                }.launchIn(viewModelScope)
-        }
+        commentRepository.postCommentToArticleFlow(articleId, params.subjectId, comment)
+            .onEach { dataState ->
+                _commentOnRes.value = dataState
+            }.launchIn(viewModelScope)
     }
 
     fun submitCommentLike(commentId: Int) {
-        viewModelScope.launch {
-            commentRepository.likeCommentFlow(commentId).onEach { dataState ->
-                _commentsData.value = dataState
-            }.launchIn(viewModelScope)
-        }
+        commentRepository.likeCommentFlow(commentId).onEach { dataState ->
+            _commentsData.value = dataState
+        }.launchIn(viewModelScope)
     }
 
     fun updateComment(commentId: Int, comment: String) {
-        viewModelScope.launch {
-            commentRepository.updateCommentFlow(commentId, comment).onEach { dataState ->
-                _commentsData.value = dataState
-            }.launchIn(viewModelScope)
-        }
+        commentRepository.updateCommentFlow(commentId, comment).onEach { dataState ->
+            _commentsData.value = dataState
+        }.launchIn(viewModelScope)
     }
     fun removeComment(commentId: Int) {
-        viewModelScope.launch {
-            commentRepository.removeCommentFlow(commentId).onEach { dataState ->
-                _commentsData.value = dataState
-            }.launchIn(viewModelScope)
-        }
+        commentRepository.removeCommentFlow(commentId).onEach { dataState ->
+            _commentsData.value = dataState
+        }.launchIn(viewModelScope)
     }
 
     fun fetchGradeList() {
-        viewModelScope.launch {
-            gradeRepository.getGradeFromLocalFlow().onEach { dataState ->
-                _gradeData.value = dataState
-            }.launchIn(viewModelScope)
-        }
+        gradeRepository.getGradeFromLocalFlow().onEach { dataState ->
+            _gradeData.value = dataState
+        }.launchIn(viewModelScope)
     }
 
     fun getMyUid(context: Context): Int {

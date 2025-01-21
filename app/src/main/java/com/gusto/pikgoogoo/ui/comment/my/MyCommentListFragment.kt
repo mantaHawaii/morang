@@ -27,6 +27,8 @@ class MyCommentListFragment : LoadingIndicatorFragment() {
     private lateinit var adapter: CommentAdapter
 
     private var myUid = 0
+    private var moreFlag = true
+    private var lastDataSize = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,7 +39,7 @@ class MyCommentListFragment : LoadingIndicatorFragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
 
         binding = FragmentMyCommentListBinding.inflate(inflater, container, false)
         val v = binding.root
@@ -55,9 +57,9 @@ class MyCommentListFragment : LoadingIndicatorFragment() {
         binding.rvComments.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
-                if (!recyclerView.canScrollVertically(-1) && !isLoading && newState== RecyclerView.SCROLL_STATE_IDLE && viewModel.moreFlag) {
+                if (!recyclerView.canScrollVertically(-1) && !isLoading && newState== RecyclerView.SCROLL_STATE_IDLE && moreFlag) {
                     viewModel.params.offset += 1
-                    viewModel.getMyComments(requireActivity())
+                    fetchMyComments()
                 }
             }
         })
@@ -90,7 +92,10 @@ class MyCommentListFragment : LoadingIndicatorFragment() {
                 }
                 is DataState.Success -> {
                     loadEnd()
-                    adapter.setList(dataState.result)
+                    val data = dataState.result
+                    moreFlag = data.size != lastDataSize || viewModel.params.offset == 0
+                    adapter.setList(data)
+                    lastDataSize = data.size
                 }
                 is DataState.Error -> {
                     loadEnd()
@@ -121,7 +126,8 @@ class MyCommentListFragment : LoadingIndicatorFragment() {
                 is DataState.Success -> {
                     loadEnd()
                     adapter.setGradeList(dataState.result)
-                    viewModel.getMyComments(requireActivity())
+                    moreFlag = true
+                    fetchMyComments()
                 }
                 is DataState.Error -> {
                     loadEnd()
@@ -129,6 +135,10 @@ class MyCommentListFragment : LoadingIndicatorFragment() {
                 }
             }
         })
+    }
+
+    private fun fetchMyComments() {
+        viewModel.fetchMyComments(requireActivity())
     }
 
 }

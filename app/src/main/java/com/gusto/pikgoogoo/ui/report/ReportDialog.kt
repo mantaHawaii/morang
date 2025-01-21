@@ -48,7 +48,7 @@ constructor(
         binding = DialogReportBinding.inflate(inflater, container, false)
         val v = binding.root
 
-        viewModel.getReportReasons(type)
+        viewModel.fetchReportReason(type)
 
         binding.bSubmit.setOnClickListener {
             val idx = binding.rgReports.checkedRadioButtonId-1
