@@ -28,17 +28,6 @@ constructor(
 
     val subjects = mutableListOf<Subject>()
 
-    suspend fun addSubject(title: String, category: Int, token: String): Pair<String, Int> {
-        val res = withContext(Dispatchers.IO) {
-            webService.addSubject(token, title, category)
-        }
-        if (res.status.code == "111") {
-            return Pair(res.status.message, res.id)
-        } else {
-            throw Exception(res.status.message)
-        }
-    }
-
     fun insertSubjectFlow(title: String, categoryId: Int) = flow {
         try {
             emit(DataState.Loading())
@@ -46,7 +35,7 @@ constructor(
             val idToken = firebaseDataSource.getIDTokenByUser(firebaseUser)
             val res = webService.addSubject(idToken, title, categoryId)
             if (isStatusCodeSuccess(res)) {
-
+                emit(DataState.Success(Pair(res.status.message, res.id)))
             } else {
                 emit(DataState.Error(formatErrorFromStatus(res)))
             }
@@ -54,17 +43,6 @@ constructor(
             emit(DataState.Error(e))
         }
     }.flowOn(Dispatchers.IO)
-
-    suspend fun getSubjects(categoryId: Int, order: Int, offset: Int): List<Subject> {
-        val res = withContext(Dispatchers.IO) {
-            webService.getSubjects(categoryId, order, offset)
-        }
-        if (res.status.code == "111") {
-            return subjectMapper.mapFromEntityList(res.subjects)
-        } else {
-            throw Exception(res.status.message)
-        }
-    }
 
     fun fetchSubjectsFlow(categoryId: Int, order: Int, offset: Int) = flow {
         try {
@@ -85,17 +63,6 @@ constructor(
             emit(DataState.Error(e))
         }
     }.flowOn(Dispatchers.IO)
-
-    suspend fun getSubjectsBySearchWords(categoryId: Int, order: Int, offset: Int, searchWords: String): List<Subject> {
-        val res = withContext(Dispatchers.IO) {
-            webService.getSubjectsBySearchWords(categoryId, order, offset, searchWords)
-        }
-        if (res.status.code == "111") {
-            return subjectMapper.mapFromEntityList(res.subjects)
-        } else {
-            throw Exception(res.status.message)
-        }
-    }
 
     fun fetchSubjectsBySearchWordsFlow(categoryId: Int, order: Int, offset: Int, searchWords: String) = flow {
         try {
@@ -149,17 +116,6 @@ constructor(
         }
     }.flowOn(Dispatchers.IO)
 
-    suspend fun bookmarkSubject(subjectId: Int, token: String): String {
-        val res = withContext(Dispatchers.IO) {
-            webService.bookmarkSubject(subjectId, token)
-        }
-        if (res.status.code == "111") {
-            return res.status.message
-        } else {
-            throw Exception(res.status.message)
-        }
-    }
-
     fun bookmarkSubjectFlow(subjectId: Int) = flow {
         try {
             emit(DataState.Loading("북마크 요청 중"))
@@ -175,17 +131,6 @@ constructor(
             emit(DataState.Error(e))
         }
     }.flowOn(Dispatchers.IO)
-
-    suspend fun getBookmarkedSubjects(userId: Int, order: Int, offset: Int): List<Subject> {
-        val res = withContext(Dispatchers.IO) {
-            webService.getBookmarkedSubjects(userId, order, offset)
-        }
-        if (res.status.code == "111") {
-            return subjectMapper.mapFromEntityList(res.subjects)
-        } else {
-            throw Exception(res.status.message)
-        }
-    }
 
     fun fetchBookmarkedSubjectsFlow(context: Context, order: Int, offset: Int) = flow {
         try {
@@ -208,17 +153,6 @@ constructor(
             emit(DataState.Error(e))
         }
     }.flowOn(Dispatchers.IO)
-
-    suspend fun getMySubjects(userId: Int, order: Int, offset: Int): List<Subject> {
-        val res = withContext(Dispatchers.IO) {
-            webService.getMySubjects(userId, order, offset)
-        }
-        if (res.status.code == "111") {
-            return subjectMapper.mapFromEntityList(res.subjects)
-        } else {
-            throw Exception(res.status.message)
-        }
-    }
 
     fun fetchMySubjectsFlow(context: Context, order: Int, offset: Int) = flow {
         try {

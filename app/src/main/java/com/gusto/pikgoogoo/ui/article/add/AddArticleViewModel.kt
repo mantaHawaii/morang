@@ -23,10 +23,10 @@ constructor(
     private val firebaseImageRepository: FirebaseImageRepository
 ): ViewModel() {
 
-    private val _insertState: MutableLiveData<DataState<String>> = MutableLiveData()
+    private val _insertState: MutableLiveData<DataState<Pair<String, Int>>> = MutableLiveData()
     private val _storageState: MutableLiveData<DataState<String>> = MutableLiveData()
 
-    val insertState: LiveData<DataState<String>>
+    val insertState: LiveData<DataState<Pair<String, Int>>>
         get() = _insertState
     val storageState: LiveData<DataState<String>>
         get() = _storageState

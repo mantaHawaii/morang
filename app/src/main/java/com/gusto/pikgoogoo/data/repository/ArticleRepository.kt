@@ -29,7 +29,7 @@ constructor(
             val idToken = firebaseDataSource.getIDTokenByUser(firebaseUser)
             val res = webService.addArticle(idToken, content, subjectId, imageUrl, cropImage)
             if (isStatusCodeSuccess(res)) {
-                emit(DataState.Success(res.status.message))
+                emit(DataState.Success(Pair(res.status.message, res.id)))
             } else {
                 emit(DataState.Error(formatErrorFromStatus(res)))
             }
@@ -40,7 +40,6 @@ constructor(
 
     fun fetchArticlesFlow(subjectId: Int, order: Int, offset: Int, searchWords: String) = flow {
         try {
-            Log.d("MR_AR", "fetchArticlesFlow called")
             emit(DataState.Loading("항목 정보 가져오는 중"))
 
             if (offset == 0) {
@@ -54,7 +53,9 @@ constructor(
                 if (data.isNotEmpty()) {
                     totalVoteCount = data[0].totalVotesInPeriod
                     for (item in data) {
-                        item.imageUri = firebaseDataSource.getThumbUri(item.imageUrl)
+                        if (item.imageUrl.isNotEmpty()) {
+                            item.imageUri = firebaseDataSource.getThumbUri(item.imageUrl)
+                        }
                         item.voteRate = if (totalVoteCount == 0) 0.0f else (item.voteCount.toFloat() / totalVoteCount.toFloat()) * 100.0f
                     }
                 }
@@ -89,6 +90,8 @@ constructor(
                 }
                 if (order != ArticleOrder.NEW.value) {
                     articles.sortByDescending { it.voteCount }
+                } else {
+                    rankAll(articles)
                 }
                 emit(DataState.Success(articles))
             } else {

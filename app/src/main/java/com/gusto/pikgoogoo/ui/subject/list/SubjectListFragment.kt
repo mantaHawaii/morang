@@ -66,7 +66,9 @@ class SubjectListFragment : LoadingIndicatorFragment() {
         binding.fabAddSubejct.setOnClickListener {
             if (loginManager.isLoggedIn()) {
                 showChildFragment(
-                    AddSubjectFragment(),
+                    AddSubjectFragment { pair ->
+                        showChildFragment(ArticleListFragment(pair.second, pair.first), FragmentTags.ARTICLE_LIST_TAG)
+                    },
                     FragmentTags.ADD_SUBJECT_TAG
                 )
             } else {

@@ -1,6 +1,7 @@
 package com.gusto.pikgoogoo.ui.splash
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -43,6 +44,7 @@ constructor(
     }
 
     fun setDBVersionOfPerf(activity: SplashActivity, dbVersion: Int) {
+        Log.d("MR_SVM", "setDBVersionOfPerf")
         activity.getPreferences(Context.MODE_PRIVATE)
             .edit()
             .putInt(activity.getString(R.string.preference_local_db_version_key), dbVersion)

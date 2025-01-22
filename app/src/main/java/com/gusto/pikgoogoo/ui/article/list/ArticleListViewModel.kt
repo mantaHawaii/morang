@@ -12,11 +12,9 @@ import com.gusto.pikgoogoo.data.repository.ArticleRepository
 import com.gusto.pikgoogoo.data.repository.SubjectRepository
 import com.gusto.pikgoogoo.util.DataState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -53,11 +51,12 @@ constructor(
             0
         )
 
-    fun fetchArticles() {
-        articleRepository.fetchArticlesFlow(params.subjectId, params.order, params.offset, params.searchWords)
-            .onEach { dataState ->
-                _articlesData.value = dataState
-            }.launchIn(viewModelScope)
+    fun fetchArticles(): Job {
+        val job = articleRepository.fetchArticlesFlow(params.subjectId, params.order, params.offset, params.searchWords)
+                    .onEach { dataState ->
+                        _articlesData.value = dataState
+                    }.launchIn(viewModelScope)
+        return job
     }
 
     fun fetchAds(context: Context, numberOfAds: Int) {

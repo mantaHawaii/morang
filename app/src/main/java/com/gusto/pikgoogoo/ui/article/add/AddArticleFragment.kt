@@ -17,7 +17,8 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class AddArticleFragment(
-    private val subjectId: Int
+    private val subjectId: Int,
+    private val onSuccess: (Int) -> Unit
 ) : LoadingIndicatorFragment() {
 
     private lateinit var binding: FragmentAddArticleBinding
@@ -98,7 +99,8 @@ class AddArticleFragment(
                 }
                 is DataState.Success -> {
                     loadEnd()
-                    showMessage(dataState.result)
+                    showMessage(dataState.result.first)
+                    onSuccess(dataState.result.second)
                     backPressed(FragmentExitStyle.SLIDE_DOWN)
                 }
                 is DataState.Error -> {

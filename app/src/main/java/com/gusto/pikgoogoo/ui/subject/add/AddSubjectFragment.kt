@@ -1,6 +1,7 @@
 package com.gusto.pikgoogoo.ui.subject.add
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,11 +18,12 @@ import com.gusto.pikgoogoo.ui.article.list.ArticleListFragment
 import com.gusto.pikgoogoo.ui.main.MainActivity
 import com.gusto.pikgoogoo.ui.components.fragment.BackPressableFragment
 import com.gusto.pikgoogoo.ui.components.fragment.LoadingIndicatorFragment
+import com.gusto.pikgoogoo.ui.subject.list.SubjectListFragment
 import com.gusto.pikgoogoo.util.DataState
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class AddSubjectFragment : LoadingIndicatorFragment() {
+class AddSubjectFragment(private val onSuccess: (Pair<String, Int>) -> Unit) : LoadingIndicatorFragment() {
 
     private lateinit var binding: FragmentAddSubjectBinding
     private val viewModel: AddSubjectViewModel by viewModels()
@@ -33,7 +35,7 @@ class AddSubjectFragment : LoadingIndicatorFragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
 
         binding = FragmentAddSubjectBinding.inflate(inflater, container, false)
         val v = binding.root
@@ -103,10 +105,6 @@ class AddSubjectFragment : LoadingIndicatorFragment() {
                     adapter.setList(dataState.result)
                     binding.spCategory.setSelection(dataState.result.size-1)
                 }
-                /*is DataState.Failure -> {
-                    loadEnd()
-                    showMessage(dataState.string)
-                }*/
                 is DataState.Error -> {
                     loadEnd()
                     showMessage(dataState.exception.localizedMessage?:"에러")
@@ -120,17 +118,9 @@ class AddSubjectFragment : LoadingIndicatorFragment() {
                 }
                 is DataState.Success -> {
                     loadEnd()
-                    (requireActivity() as MainActivity).showFragmentOnFullScreen(
-                        ArticleListFragment(dataState.result.second, dataState.result.first),
-                        FragmentTags.ARTICLE_LIST_TAG,
-                        false
-                    )
-                    parentFragmentManager.popBackStack(FragmentTags.ADD_SUBJECT_TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
+                    parentFragmentManager.popBackStack()
+                    onSuccess(Pair(dataState.result.first, dataState.result.second))
                 }
-                /*is DataState.Failure -> {
-                    loadEnd()
-                    showMessage(dataState.string)
-                }*/
                 is DataState.Error -> {
                     loadEnd()
                     showMessage(dataState.exception.localizedMessage?:"에러")
@@ -138,5 +128,4 @@ class AddSubjectFragment : LoadingIndicatorFragment() {
             }
         })
     }
-
 }

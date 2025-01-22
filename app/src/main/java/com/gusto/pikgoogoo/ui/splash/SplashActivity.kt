@@ -81,6 +81,7 @@ class SplashActivity : MRActivity() {
                     Log.d(TAG, "7")
                 }
                 is DataState.Success -> {
+                    Log.d(TAG, "DataState.Success")
                     viewModel.setDBVersionOfPerf(this, serverDBVersion)
                     getStarted()
                 }
@@ -93,14 +94,17 @@ class SplashActivity : MRActivity() {
 
     private fun getStarted() {
         var intent: Intent? = null
-
+        Log.d(TAG, "getStarted()")
         if (loginManager.isLoggedIn()) {
+            Log.d(TAG, "getStarted()->"+"LoggedIn")
             intent = Intent(this, MainActivity::class.java)
         } else {
+            Log.d(TAG, "getStarted()->"+"Not LoggedIn")
             intent = Intent(this, LoginActivity::class.java)
         }
 
         if (!isStarted){
+            Log.d(TAG, "getStarted()->"+"Start Activity!")
             startActivity(intent)
             isStarted = true
         }

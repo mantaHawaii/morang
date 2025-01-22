@@ -45,8 +45,11 @@ class DateFormatManager {
             in month..years-1 -> {
                 return (calculatedTime/month).toInt().toString()+"개월 전"
             }
+            in years..Long.MAX_VALUE -> {
+                return (calculatedTime/years).toInt().toString()+"년 전"
+            }
             else -> {
-                return return (calculatedTime/years).toInt().toString()+"년 전"
+                return "방금 전"
             }
 
         }

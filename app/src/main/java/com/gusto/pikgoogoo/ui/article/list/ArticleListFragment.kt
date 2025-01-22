@@ -11,6 +11,7 @@ import android.view.inputmethod.EditorInfo
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.gms.ads.*
 import com.google.android.gms.ads.nativead.NativeAd
@@ -22,6 +23,7 @@ import com.google.firebase.dynamiclinks.ktx.*
 import com.google.firebase.ktx.Firebase
 import com.gusto.pikgoogoo.R
 import com.gusto.pikgoogoo.adapter.ArticleAdapter
+import com.gusto.pikgoogoo.data.Article
 import com.gusto.pikgoogoo.data.ArticleOrder
 import com.gusto.pikgoogoo.data.tag.FragmentTags
 import com.gusto.pikgoogoo.databinding.FragmentArticleListBinding
@@ -32,6 +34,10 @@ import com.gusto.pikgoogoo.util.DataState
 import com.gusto.pikgoogoo.ui.components.fragment.LoadingIndicatorFragment
 import com.gusto.pikgoogoo.util.LoginManager
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.internal.wait
 import java.net.URLEncoder
 import javax.inject.Inject
 
@@ -62,6 +68,8 @@ constructor(
 
     private var scrollTopFlag = false
 
+    private val TAG = "MR_ALF"
+
     @Inject
     lateinit var loginManager: LoginManager
 
@@ -88,7 +96,9 @@ constructor(
 
         binding.fabAddArticle.setOnClickListener {
             if (loginManager.isLoggedIn()) {
-                openChildFragment(AddArticleFragment(subjectId = subjectId), FragmentTags.ADD_ARTICLE_TAG)
+                openChildFragment(AddArticleFragment(subjectId = subjectId) { id ->
+                    refreshArticles(id)
+                }, FragmentTags.ADD_ARTICLE_TAG)
             } else {
                 alertLogin()
             }
@@ -130,7 +140,6 @@ constructor(
                 }
 
                 if (dy > 0 && !recyclerView.canScrollVertically(1) && !isLoading && moreFlag) {
-                    Log.d("MR_ALF", "offset 변화 후 불러옵니다:"+ viewModel.params.offset.toString())
                     scrollTopFlag = false
                     viewModel.params.offset += 1
                     viewModel.fetchArticles()
@@ -223,8 +232,9 @@ constructor(
             }
 
         }
-
-        /*val composeView = ComposeView(requireActivity())
+        /*********
+         *
+        val composeView = ComposeView(requireActivity())
         composeView.setContent {
             CollaspingArticleLayout(viewModel, title, subjectId, object : ClickListener {
                 override fun onBackClick() {
@@ -385,7 +395,6 @@ constructor(
                     showMessage(dataState.exception.localizedMessage?:"에러")
                 }
                 is DataState.Loading -> {
-                    Log.d("MR_ALF", "항목 불러오는 중입니다")
                     loadStart(dataState.string)
                 }
                 is DataState.Success -> {
@@ -418,19 +427,43 @@ constructor(
         })
     }
 
-    fun refreshArticles() {
+    private fun refreshArticles() {
         clearSearch()
         viewModel.params.searchWords = ""
         viewModel.params.offset = 0
         viewModel.fetchArticles()
     }
 
-    fun alertLogin() {
-        (requireActivity() as MainActivity).alertLogin()
+    private fun refreshArticles(id: Int) {
+        lifecycleScope.launch {
+            withContext(Dispatchers.IO) {
+                clearSearch()
+                viewModel.params.searchWords = ""
+                viewModel.params.offset = 0
+                viewModel.fetchArticles().join()
+            }
+            scrollToArticle(id)
+        }
     }
 
-    private fun reset() {
+    private fun scrollToArticle(id: Int) {
+        binding.rvArticles.smoothScrollToPosition(findItemPosition(id))
+    }
 
+    private fun findItemPosition(aid: Int): Int {
+        for (i in 0 until articleAdapter.itemCount) {
+            val item = articleAdapter.itemList[i]
+            if (item is Article) {
+                if (item.id == aid) {
+                    return i
+                }
+            }
+        }
+        return -1
+    }
+
+    private fun alertLogin() {
+        (requireActivity() as MainActivity).alertLogin()
     }
 
     private fun tapPositionToRequestOrder(tabPos: Int): Int {

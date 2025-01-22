@@ -1,5 +1,6 @@
 package com.gusto.pikgoogoo.data.repository
 
+import android.util.Log
 import com.gusto.pikgoogoo.api.WebService
 import com.gusto.pikgoogoo.data.Grade
 import com.gusto.pikgoogoo.data.GradeMapper
@@ -39,14 +40,23 @@ constructor(
     fun updateLocalUserGradeFlow() = flow {
         try {
             emit(DataState.Loading("로컬 DB 업데이트 중"))
+            Log.d("MR_GR", "updateLocalUserGradeFlow()")
             val res = webService.getGrade()
+            Log.d("MR_GR", "updateLocalUserGradeFlow() 2")
             if (isStatusCodeSuccess(res)) {
+                Log.d("MR_GR", "updateLocalUserGradeFlow() 3")
                 val gradeList = gradeMapper.mapFromEntityList(res.grade)
+                Log.d("MR_GR", "updateLocalUserGradeFlow() 4")
                 for (grade in gradeList) {
+                    Log.d("MR_GR", "updateLocalUserGradeFlow() 5")
                     gradeDao.insertGradeAll(grade)
+                    Log.d("MR_GR", "updateLocalUserGradeFlow() 6")
                 }
+                emit(DataState.Success(res.status.message))
             } else {
+                Log.d("MR_GR", "updateLocalUserGradeFlow() 7")
                 emit(DataState.Error(formatErrorFromStatus(res)))
+                Log.d("MR_GR", "updateLocalUserGradeFlow() 8")
             }
         } catch (e: Exception) {
             emit(DataState.Error(e))
